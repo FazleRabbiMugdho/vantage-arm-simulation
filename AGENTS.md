@@ -23,10 +23,11 @@ This file documents the agent configuration and conventions used when building t
 
 ### Branching strategy
 - **Create a new branch** for every prompt before starting work: `git checkout -b prompt-XX`
-- After the prompt's commit, merge back to `master`: `git checkout master && git merge prompt-XX`
-- Delete the branch locally after merge: `git branch -d prompt-XX`
-- Push master after each prompt: `git push`
-- This keeps each prompt's work isolated and makes `/undo` trivial (delete the branch).
+- **Push the branch** to GitHub: `git push -u origin prompt-XX`
+- **Create a Pull Request** on GitHub from `prompt-XX` into `master` — merge via PR, not direct merge.
+- **Keep all branches** — never delete them locally or remotely. This preserves full history per prompt.
+- After the PR is merged, switch back to master and pull: `git checkout master && git pull`
+- This keeps each prompt's work isolated, enables PR review, and gives a clean `/undo` path.
 
 ### Audit file requirement
 - After every prompt (both Plan and Build mode), create an audit file at:
