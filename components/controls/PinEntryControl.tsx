@@ -62,39 +62,69 @@ export default function PinEntryControl() {
     setError(null);
 
     const digits = pin.split('').map(Number);
+    console.log('[PinEntryControl] Starting PIN sequence for digits:', digits);
 
     for (let i = 0; i < digits.length; i++) {
-      if (abortRef.current) break;
+      if (abortRef.current) {
+        console.log('[PinEntryControl] Sequence aborted at digit index', i);
+        break;
+      }
 
       const keyIdx = digits[i] - 1;
       const key = KEY_POSITIONS[keyIdx];
+      if (!key) {
+        console.error('[PinEntryControl] Key not found at index', keyIdx);
+        setError(`Key index ${keyIdx + 1} not found in config`);
+        break;
+      }
+
+      console.log(`[PinEntryControl] Processing digit ${i + 1}/6: key ${digits[i]} at [x:${key.x}, y:${key.y}, z:${key.z}]`);
 
       // Approach
       const approachPos: [number, number, number] = [key.x, key.y, key.z + APPROACH_OFFSET];
       setCurrentStep({ digit: i + 1, phase: 'approach' });
+      console.log('[PinEntryControl] Sending moveTo approachPos:', approachPos);
       let result = motionController.execute({ type: 'moveTo', target: approachPos }, 'autonomous');
+      console.log('[PinEntryControl] Approach result:', result);
       addStep({ digitIndex: i + 1, phase: 'approach', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
-      if (!result.accepted) { setRejectionReason(result.reason ?? 'Approach failed'); break; }
+      if (!result.accepted) {
+        setRejectionReason(result.reason ?? 'Approach failed');
+        console.error('[PinEntryControl] Approach rejected. Reason:', result.reason);
+        break;
+      }
       await motionController.waitUntilIdle();
       if (abortRef.current) break;
 
       // Descend
       const descendPos: [number, number, number] = [key.x, key.y, key.z];
       setCurrentStep({ digit: i + 1, phase: 'descend' });
+      console.log('[PinEntryControl] Sending moveTo descendPos:', descendPos);
       result = motionController.execute({ type: 'moveTo', target: descendPos }, 'autonomous');
+      console.log('[PinEntryControl] Descend result:', result);
       addStep({ digitIndex: i + 1, phase: 'descend', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
-      if (!result.accepted) { setRejectionReason(result.reason ?? 'Descend failed'); break; }
+      if (!result.accepted) {
+        setRejectionReason(result.reason ?? 'Descend failed');
+        console.error('[PinEntryControl] Descend rejected. Reason:', result.reason);
+        break;
+      }
       await motionController.waitUntilIdle();
       if (abortRef.current) break;
 
       // Retract
       setCurrentStep({ digit: i + 1, phase: 'retract' });
+      console.log('[PinEntryControl] Sending moveTo retractPos (same as approach):', approachPos);
       result = motionController.execute({ type: 'moveTo', target: approachPos }, 'autonomous');
+      console.log('[PinEntryControl] Retract result:', result);
       addStep({ digitIndex: i + 1, phase: 'retract', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
-      if (!result.accepted) { setRejectionReason(result.reason ?? 'Retract failed'); break; }
+      if (!result.accepted) {
+        setRejectionReason(result.reason ?? 'Retract failed');
+        console.error('[PinEntryControl] Retract rejected. Reason:', result.reason);
+        break;
+      }
       await motionController.waitUntilIdle();
     }
 
+    console.log('[PinEntryControl] PIN sequence execution completed');
     setCurrentStep(null);
     setRunning(false);
   }, [pin, running, addStep]);
@@ -121,6 +151,10 @@ export default function PinEntryControl() {
           value={pin}
           onChange={handleInput}
           disabled={running}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           placeholder="e.g. 123456"
           className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-center font-mono text-lg tracking-[0.5em] text-gray-100 placeholder:text-gray-600 focus:border-sky-500 focus:outline-none disabled:opacity-50"
         />
