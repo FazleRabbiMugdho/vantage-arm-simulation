@@ -47,7 +47,7 @@ export default function VoiceFeedbackPanel({
               currentRecognized ? 'text-green-400' : 'text-red-400'
             }`}
           >
-            {currentRecognized ? `→ ${currentDescription}` : '✗ Not recognized'}
+            {currentRecognized ? `→ ${currentDescription}` : `✗ ${currentDescription || 'Not recognized'}`}
           </p>
         </div>
       )}
@@ -87,7 +87,7 @@ export default function VoiceFeedbackPanel({
                 >
                   {entry.recognized
                     ? `→ ${entry.description}`
-                    : '✗ Not recognized'}
+                    : `✗ ${entry.description || 'Not recognized'}`}
                 </p>
               </div>
             </div>

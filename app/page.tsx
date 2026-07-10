@@ -33,6 +33,11 @@ const VoiceControl = dynamic(
   { ssr: false }
 );
 
+const TargetBoxControl = dynamic(
+  () => import('@/components/controls/TargetBoxControl'),
+  { ssr: false }
+);
+
 const AgenticControl = dynamic(
   () => import('@/components/controls/AgenticControl'),
   { ssr: false }
@@ -121,6 +126,9 @@ export default function Home() {
               </div>
               <div className="border-b border-gray-700/30 p-4">
                 <AgenticControl />
+              </div>
+              <div className="border-b border-gray-700/30 p-4">
+                <TargetBoxControl />
               </div>
               <div className="p-4">
                 <KeyboardControl />
