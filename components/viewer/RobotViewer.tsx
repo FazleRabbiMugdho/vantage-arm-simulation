@@ -84,15 +84,15 @@ export default function RobotViewer() {
         // Rotate the robot to stand upright (Z-up in URDF maps to Y-up in Three.js)
         robot.rotation.x = -Math.PI / 2;
 
-        // Style the robot links (metallic dark grey / silver)
+        // Style the robot links (white arm, silver stylus, red tip)
         robot.traverse((child: any) => {
           if (child.isMesh) {
             const name = child.name || '';
             const parentName = child.parent ? child.parent.name : '';
-            
-            let color = 0x555555; // default link color (medium dark grey)
-            let metalness = 0.8;
-            let roughness = 0.3;
+
+            let color = 0xeeeeee; // white arm links
+            let metalness = 0.3;
+            let roughness = 0.4;
 
             if (parentName.includes('stylus_tip')) {
               color = 0xff0000; // red tip
@@ -103,9 +103,9 @@ export default function RobotViewer() {
               metalness = 0.9;
               roughness = 0.2;
             } else if (parentName.includes('base_link')) {
-              color = 0x2d2d2d; // dark charcoal base
-              metalness = 0.6;
-              roughness = 0.4;
+              color = 0xd0d0d0; // light grey base
+              metalness = 0.4;
+              roughness = 0.3;
             }
 
             child.material = new THREE.MeshStandardMaterial({
@@ -118,21 +118,23 @@ export default function RobotViewer() {
           }
         });
 
-        // Add gold joint markers to make joints look realistic and match the problem statement
-        const goldMaterial = new THREE.MeshStandardMaterial({
-          color: 0xd4af37, // Gold color
-          metalness: 0.9,
-          roughness: 0.15,
+        // Yellow joint markers
+        const jointMat = new THREE.MeshStandardMaterial({
+          color: 0xffee00,
+          emissive: 0x442200,
+          emissiveIntensity: 0.15,
+          metalness: 0.6,
+          roughness: 0.3,
         });
 
         const jointsConfig = [
-          { name: 'joint_1', type: 'cylinder', radius: 0.035, length: 0.04, axis: 'z' },
-          { name: 'joint_2', type: 'cylinder', radius: 0.03, length: 0.06, axis: 'y' },
-          { name: 'joint_3', type: 'cylinder', radius: 0.03, length: 0.06, axis: 'y' },
-          { name: 'joint_4', type: 'sphere', radius: 0.028 },
-          { name: 'joint_5', type: 'cylinder', radius: 0.022, length: 0.04, axis: 'y' },
-          { name: 'joint_6', type: 'sphere', radius: 0.02 },
-          { name: 'stylus_pitch', type: 'cylinder', radius: 0.016, length: 0.03, axis: 'y' },
+          { name: 'joint_1', type: 'cylinder', radius: 0.055, length: 0.06, axis: 'z' },
+          { name: 'joint_2', type: 'cylinder', radius: 0.05, length: 0.08, axis: 'y' },
+          { name: 'joint_3', type: 'cylinder', radius: 0.05, length: 0.08, axis: 'y' },
+          { name: 'joint_4', type: 'sphere', radius: 0.045 },
+          { name: 'joint_5', type: 'cylinder', radius: 0.04, length: 0.06, axis: 'y' },
+          { name: 'joint_6', type: 'sphere', radius: 0.035 },
+          { name: 'stylus_pitch', type: 'cylinder', radius: 0.03, length: 0.05, axis: 'y' },
         ];
 
         jointsConfig.forEach((cfg) => {
@@ -147,7 +149,7 @@ export default function RobotViewer() {
             } else {
               geom = new THREE.SphereGeometry(cfg.radius, 16, 16);
             }
-            const mesh = new THREE.Mesh(geom, goldMaterial);
+            const mesh = new THREE.Mesh(geom, jointMat);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             joint.add(mesh);
