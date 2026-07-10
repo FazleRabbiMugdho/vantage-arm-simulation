@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="stylus_arm">
+  <!-- Base link: fixed mounting point -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.120 0.120 0.060" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_1: Base yaw - rotates about Z at the base -->
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link" />
+    <child link="link_1" />
+    <origin xyz="0 0 0.060" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.1416" upper="3.1416" effort="60.0" velocity="2.5" />
+  </joint>
+
+  <link name="link_1">
+    <visual>
+      <geometry>
+        <cylinder radius="0.030" length="0.250" />
+      </geometry>
+      <origin xyz="0 0 0.125" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_2: Shoulder pitch - rotates about Y -->
+  <joint name="joint_2" type="revolute">
+    <parent link="link_1" />
+    <child link="link_2" />
+    <origin xyz="0 0 0.250" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0944" upper="2.0944" effort="60.0" velocity="2.5" />
+  </joint>
+
+  <link name="link_2">
+    <visual>
+      <geometry>
+        <cylinder radius="0.025" length="0.250" />
+      </geometry>
+      <origin xyz="0 0 0.125" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_3: Elbow pitch - rotates about Y -->
+  <joint name="joint_3" type="revolute">
+    <parent link="link_2" />
+    <child link="link_3" />
+    <origin xyz="0 0 0.250" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.6180" upper="2.6180" effort="40.0" velocity="3.0" />
+  </joint>
+
+  <link name="link_3">
+    <visual>
+      <geometry>
+        <cylinder radius="0.025" length="0.250" />
+      </geometry>
+      <origin xyz="0 0 0.125" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_4: Forearm roll - rotates about Z -->
+  <joint name="joint_4" type="revolute">
+    <parent link="link_3" />
+    <child link="link_4" />
+    <origin xyz="0 0 0.250" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.1416" upper="3.1416" effort="25.0" velocity="3.5" />
+  </joint>
+
+  <link name="link_4">
+    <visual>
+      <geometry>
+        <cylinder radius="0.020" length="0.150" />
+      </geometry>
+      <origin xyz="0 0 0.075" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_5: Wrist pitch - rotates about Y -->
+  <joint name="joint_5" type="revolute">
+    <parent link="link_4" />
+    <child link="link_5" />
+    <origin xyz="0 0 0.150" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0944" upper="2.0944" effort="15.0" velocity="4.0" />
+  </joint>
+
+  <link name="link_5">
+    <visual>
+      <geometry>
+        <cylinder radius="0.018" length="0.250" />
+      </geometry>
+      <origin xyz="0 0 0.125" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- joint_6: Tool roll - rotates about Z -->
+  <joint name="joint_6" type="revolute">
+    <parent link="link_5" />
+    <child link="link_6" />
+    <origin xyz="0 0 0.250" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.1416" upper="3.1416" effort="10.0" velocity="4.5" />
+  </joint>
+
+  <link name="link_6">
+    <visual>
+      <geometry>
+        <cylinder radius="0.015" length="0.150" />
+      </geometry>
+      <origin xyz="0 0 0.075" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- stylus_pitch: 7th (redundant) joint - rotates about Y -->
+  <joint name="stylus_pitch" type="revolute">
+    <parent link="link_6" />
+    <child link="stylus" />
+    <origin xyz="0 0 0.150" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0944" upper="2.0944" effort="8.0" velocity="5.0" />
+  </joint>
+
+  <link name="stylus">
+    <visual>
+      <geometry>
+        <cylinder radius="0.008" length="0.100" />
+      </geometry>
+      <origin xyz="0 0 0.050" rpy="0 0 0" />
+    </visual>
+  </link>
+
+  <!-- Fixed frame: stylus_tip_frame - 0.137m further along Z from stylus -->
+  <joint name="stylus_tip_frame" type="fixed">
+    <parent link="stylus" />
+    <child link="stylus_tip" />
+    <origin xyz="0 0 0.137" rpy="0 0 0" />
+  </joint>
+
+  <link name="stylus_tip">
+    <visual>
+      <geometry>
+        <sphere radius="0.005" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </visual>
+  </link>
+</robot>
