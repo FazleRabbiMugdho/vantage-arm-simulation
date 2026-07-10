@@ -26,7 +26,7 @@ export default function RobotViewer() {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    scene.background = new THREE.Color(0x0f1117);
     sceneRef.current = scene;
 
     // Camera
@@ -69,7 +69,9 @@ export default function RobotViewer() {
     scene.add(fillLight);
 
     // Grid
-    const grid = new THREE.GridHelper(2, 20, 0x88aaff, 0x446688);
+    const grid = new THREE.GridHelper(2, 20, 0x8b6914, 0x2a2520);
+    grid.material.opacity = 0.6;
+    (grid.material as THREE.Material).transparent = true;
     scene.add(grid);
 
     // Load URDF
@@ -279,10 +281,15 @@ function JointCountOverlay() {
 
   if (loading) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+      <div className="absolute inset-0 flex items-center justify-center bg-graphite-950/90 backdrop-blur-sm">
         <div className="text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-lg text-gray-300">Loading URDF...</p>
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-[3px] border-amber-500/30 border-t-amber-500" />
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500/70">
+            Initializing URDF
+          </p>
+          <p className="mt-1 text-[10px] text-gray-600">
+            Parsing kinematic chain…
+          </p>
         </div>
       </div>
     );
@@ -290,10 +297,15 @@ function JointCountOverlay() {
 
   if (error) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
-        <div className="rounded-lg border border-red-600 bg-red-900/50 p-6 text-center">
-          <p className="text-lg text-red-400">{error}</p>
-          <p className="mt-2 text-sm text-gray-400">
+      <div className="absolute inset-0 flex items-center justify-center bg-graphite-950/90 backdrop-blur-sm">
+        <div className="rounded-lg border border-red-500/40 bg-red-950/60 p-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10">
+            <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-red-400">{error}</p>
+          <p className="mt-2 text-xs text-gray-500">
             Check that the URDF file exists in /public/
           </p>
         </div>

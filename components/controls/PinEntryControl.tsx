@@ -24,9 +24,9 @@ function phaseLabel(p: Phase): string {
 
 function phaseColor(p: Phase): string {
   switch (p) {
-    case 'approach': return 'text-sky-400';
-    case 'descend': return 'text-amber-400';
-    case 'retract': return 'text-green-400';
+    case 'approach': return 'text-amber-400';
+    case 'descend': return 'text-green-400';
+    case 'retract': return 'text-amber-500';
   }
 }
 
@@ -138,7 +138,7 @@ export default function PinEntryControl() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
+      <h2 className="panel-heading">
         PIN Entry
       </h2>
 
@@ -156,7 +156,7 @@ export default function PinEntryControl() {
           autoCapitalize="off"
           spellCheck={false}
           placeholder="e.g. 123456"
-          className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-center font-mono text-lg tracking-[0.5em] text-gray-100 placeholder:text-gray-600 focus:border-sky-500 focus:outline-none disabled:opacity-50"
+          className="w-full rounded border border-gray-700/50 bg-graphite-900 px-3 py-2 text-center font-mono text-lg tracking-[0.5em] text-gray-100 placeholder:text-gray-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 disabled:opacity-40"
         />
         {error && (
           <p className="text-xs text-red-400">{error}</p>
@@ -168,14 +168,18 @@ export default function PinEntryControl() {
         <button
           onClick={runSequence}
           disabled={running}
-          className="flex-1 rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
+          className={`flex-1 rounded px-3 py-1.5 text-sm font-semibold transition-all ${
+            running
+              ? 'animate-pulse bg-amber-600 text-white'
+              : 'bg-amber-500 text-graphite-950 hover:bg-amber-400 disabled:opacity-40'
+          }`}
         >
-          {running ? 'Running...' : 'Run Sequence'}
+          {running ? 'Running…' : 'Run Sequence'}
         </button>
         <button
           onClick={stopSequence}
           disabled={!running}
-          className="rounded bg-red-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-40"
+          className="rounded bg-red-600/80 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-30"
         >
           Stop
         </button>
@@ -183,9 +187,9 @@ export default function PinEntryControl() {
 
       {/* Live step indicator */}
       {currentStep && (
-        <div className="rounded border border-gray-700 bg-gray-800/50 p-2">
+        <div className="rounded border border-amber-500/20 bg-amber-500/5 p-2">
           <p className="text-xs text-gray-400">
-            Digit <span className="font-mono text-white">{currentStep.digit}</span> of 6
+            Digit <span className="font-mono font-semibold text-amber-400">{currentStep.digit}</span> of 6
           </p>
           <p className={`text-sm font-semibold ${phaseColor(currentStep.phase)}`}>
             {phaseLabel(currentStep.phase)}
@@ -195,15 +199,15 @@ export default function PinEntryControl() {
 
       {/* Rejection reason */}
       {rejectionReason && (
-        <div className="rounded border border-red-700 bg-red-900/30 p-2">
+        <div className="rounded border border-l-2 border-red-500/30 border-l-red-500 bg-red-500/5 p-2">
           <p className="text-xs font-semibold text-red-400">Sequence stopped</p>
-          <p className="text-xs text-red-300">{rejectionReason}</p>
+          <p className="text-xs text-red-400/70">{rejectionReason}</p>
         </div>
       )}
 
       {/* Step log */}
       {log.length > 0 && (
-        <div className="max-h-40 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700 bg-gray-900/50 p-2">
+        <div className="max-h-40 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700/30 bg-graphite-900/50 p-2">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Step Log</p>
           {log.map((s, i) => (
             <div key={i} className="flex items-center gap-2 text-[10px]">

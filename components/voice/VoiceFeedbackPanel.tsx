@@ -27,18 +27,18 @@ export default function VoiceFeedbackPanel({
     <div className="space-y-2">
       {/* Live interim result (shows while speaking) */}
       {interimTranscript && (
-        <div className="rounded border border-dashed border-gray-700 bg-gray-800/30 p-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-            Listening...
+        <div className="rounded border border-dashed border-amber-500/20 bg-amber-500/5 p-2">
+          <p className="panel-heading">
+            Listening…
           </p>
-          <p className="text-sm italic text-gray-400">&ldquo;{interimTranscript}&rdquo;</p>
+          <p className="text-sm italic text-amber-400/70">&ldquo;{interimTranscript}&rdquo;</p>
         </div>
       )}
 
       {/* Final result */}
       {currentTranscript && (
-        <div className="rounded border border-gray-700 bg-gray-800/50 p-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+        <div className="rounded border border-gray-700/30 bg-graphite-700/30 p-2">
+          <p className="panel-heading">
             Latest
           </p>
           <p className="text-sm text-gray-100">&ldquo;{currentTranscript}&rdquo;</p>
@@ -61,8 +61,8 @@ export default function VoiceFeedbackPanel({
 
       {/* History */}
       {entries.length > 0 && (
-        <div className="max-h-48 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700 bg-gray-900/50 p-2">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+        <div className="max-h-48 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700/30 bg-graphite-900/50 p-2">
+          <p className="panel-heading mb-1">
             History
           </p>
           {entries.slice().reverse().map((entry) => (

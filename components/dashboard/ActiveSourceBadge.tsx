@@ -12,11 +12,19 @@ const SOURCE_LABELS: Record<AdapterName, string> = {
 };
 
 const SOURCE_COLORS: Record<AdapterName, string> = {
-  joystick: 'bg-blue-500 text-blue-100 border-blue-400',
-  keyboard: 'bg-purple-500 text-purple-100 border-purple-400',
-  voice: 'bg-green-500 text-green-100 border-green-400',
-  autonomous: 'bg-amber-500 text-amber-100 border-amber-400',
-  agentic: 'bg-red-500 text-red-100 border-red-400',
+  joystick: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  keyboard: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  voice: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  autonomous: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+  agentic: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+};
+
+const SOURCE_ICONS: Record<AdapterName, string> = {
+  joystick: '◎',
+  keyboard: '⌨',
+  voice: '🎙',
+  autonomous: '⚡',
+  agentic: '🤖',
 };
 
 export default function ActiveSourceBadge() {
@@ -25,18 +33,19 @@ export default function ActiveSourceBadge() {
 
   if (!lastEntry) {
     return (
-      <span className="rounded border border-gray-600 bg-gray-700/50 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
-        No activity
+      <span className="rounded border border-gray-700/50 bg-graphite-700 px-2.5 py-1 text-[10px] font-medium tracking-wider text-gray-600">
+        ● Idle
       </span>
     );
   }
 
   return (
     <span
-      className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+      className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${
         SOURCE_COLORS[lastEntry.source] || 'bg-gray-600 text-gray-200 border-gray-500'
       }`}
     >
+      <span>{SOURCE_ICONS[lastEntry.source] || '●'}</span>
       {SOURCE_LABELS[lastEntry.source] || lastEntry.source}
     </span>
   );

@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Industrial Design System ─── */
+
+@layer base {
+  /* Ensure tabular-nums everywhere for numeric stability */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbar styling for dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@layer components {
+  /* Section header used across all panels */
+  .panel-heading {
+    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500/80;
+  }
+
+  /* Subtle inner border for panel sections */
+  .panel-divider {
+    @apply border-gray-700/40;
+  }
+
+  /* Monospace telemetry value */
+  .tele-value {
+    @apply font-mono text-sm tabular-nums text-gray-100;
+  }
+
+  /* Keyboard key cap styling */
+  .kbd-cap {
+    @apply inline-flex min-w-[1.25rem] items-center justify-center rounded
+           border border-gray-600/60 bg-graphite-600 px-1 py-0.5
+           text-[10px] font-medium text-gray-300
+           shadow-[0_1px_0_0_rgba(0,0,0,0.4)] transition-colors;
+  }
+
+  /* Control button base */
+  .ctrl-btn {
+    @apply flex items-center justify-center rounded border
+           border-gray-600/50 bg-graphite-600 text-gray-300
+           transition-all duration-150
+           hover:border-amber-500/40 hover:bg-graphite-600 hover:text-amber-400
+           active:scale-95 active:bg-amber-500/10;
+  }
+}

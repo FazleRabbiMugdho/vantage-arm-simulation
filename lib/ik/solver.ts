@@ -1,5 +1,5 @@
 import type { KinematicChain } from './chain';
-import { computeTipPosition } from './forwardKinematics';
+import { computeTipPosition, computeTipDirection } from './forwardKinematics';
 
 const EPS = 1e-6;
 const DEFAULT_LAMBDA = 0.1;
@@ -20,46 +20,118 @@ export interface IKSolution {
   finalError: number;
 }
 
-function mat3x3Identity(): number[][] {
-  return [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1],
-  ];
-}
-
-function mat3x3Inverse(m: number[][]): number[][] {
-  const a = m[0][0], b = m[0][1], c = m[0][2];
-  const d = m[1][0], e = m[1][1], f = m[1][2];
-  const g = m[2][0], h = m[2][1], i = m[2][2];
-
-  const det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
-  if (Math.abs(det) < 1e-15) {
-    return mat3x3Identity();
-  }
-
-  const invDet = 1 / det;
-  return [
-    [(e * i - f * h) * invDet, (c * h - b * i) * invDet, (b * f - c * e) * invDet],
-    [(f * g - d * i) * invDet, (a * i - c * g) * invDet, (c * d - a * f) * invDet],
-    [(d * h - e * g) * invDet, (b * g - a * h) * invDet, (a * e - b * d) * invDet],
-  ];
-}
-
-function mat3x3MultiplyVec(m: number[][], v: number[]): number[] {
-  return [
-    m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
-    m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
-    m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2],
-  ];
-}
-
 function vec3Sub(a: number[], b: number[]): number[] {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 }
 
 function vec3Len(v: number[]): number {
   return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
+/**
+ * General NxN matrix inverse using Gauss-Jordan elimination.
+ * Returns identity if singular.
+ */
+function matNxNInverse(m: number[][]): number[][] {
+  const n = m.length;
+  // Augmented matrix [m | I]
+  const aug: number[][] = [];
+  for (let i = 0; i < n; i++) {
+    aug[i] = [...m[i]];
+    for (let j = 0; j < n; j++) {
+      aug[i].push(i === j ? 1 : 0);
+    }
+  }
+
+  for (let col = 0; col < n; col++) {
+    // Find pivot
+    let maxVal = Math.abs(aug[col][col]);
+    let maxRow = col;
+    for (let row = col + 1; row < n; row++) {
+      if (Math.abs(aug[row][col]) > maxVal) {
+        maxVal = Math.abs(aug[row][col]);
+        maxRow = row;
+      }
+    }
+    if (maxVal < 1e-15) {
+      // Singular — return identity
+      const ident: number[][] = [];
+      for (let i = 0; i < n; i++) {
+        ident[i] = new Array(n).fill(0);
+        ident[i][i] = 1;
+      }
+      return ident;
+    }
+    // Swap rows
+    [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+    // Scale pivot row
+    const scale = 1 / aug[col][col];
+    for (let j = 0; j < 2 * n; j++) aug[col][j] *= scale;
+    // Eliminate column
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue;
+      const factor = aug[row][col];
+      for (let j = 0; j < 2 * n; j++) {
+        aug[row][j] -= factor * aug[col][j];
+      }
+    }
+  }
+
+  // Extract inverse
+  const inv: number[][] = [];
+  for (let i = 0; i < n; i++) {
+    inv[i] = aug[i].slice(n);
+  }
+  return inv;
+}
+
+/**
+ * Multiply NxM matrix by M-vector, returning N-vector.
+ */
+function matVecMul(m: number[][], v: number[]): number[] {
+  const n = m.length;
+  const result = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < v.length; j++) {
+      result[i] += m[i][j] * v[j];
+    }
+  }
+  return result;
+}
+
+/**
+ * Transpose an MxN matrix (stored as M rows of N columns) to NxM.
+ */
+function transpose(m: number[][]): number[][] {
+  const rows = m.length;
+  const cols = m[0].length;
+  const t: number[][] = [];
+  for (let c = 0; c < cols; c++) {
+    t[c] = new Array(rows);
+    for (let r = 0; r < rows; r++) {
+      t[c][r] = m[r][c];
+    }
+  }
+  return t;
+}
+
+/**
+ * Multiply AxB matrix by BxC matrix, producing AxC.
+ */
+function matMul(a: number[][], b: number[][]): number[][] {
+  const aRows = a.length;
+  const bCols = b[0].length;
+  const bRows = b.length;
+  const result: number[][] = [];
+  for (let i = 0; i < aRows; i++) {
+    result[i] = new Array(bCols).fill(0);
+    for (let j = 0; j < bCols; j++) {
+      for (let k = 0; k < bRows; k++) {
+        result[i][j] += a[i][k] * b[k][j];
+      }
+    }
+  }
+  return result;
 }
 
 export function solveIK(
@@ -70,11 +142,17 @@ export function solveIK(
     tolerance?: number;
     maxIterations?: number;
     lambda?: number;
+    /** Desired approach direction for the stylus (e.g. [0,0,-1] for downward). */
+    approachDirection?: [number, number, number];
+    /** Weight for orientation error relative to position error. Default 0.3. */
+    orientationWeight?: number;
   },
 ): IKSolution {
   const tolerance = options?.tolerance ?? DEFAULT_TOLERANCE;
   const maxIterations = options?.maxIterations ?? DEFAULT_MAX_ITER;
   const lambda = options?.lambda ?? DEFAULT_LAMBDA;
+  const approachDir = options?.approachDirection ?? null;
+  const orientW = options?.orientationWeight ?? 0.3;
   const nJoints = chain.joints.length;
 
   let angles = [...currentAngles];
@@ -82,44 +160,97 @@ export function solveIK(
 
   for (; iteration < maxIterations; iteration++) {
     const pos = computeTipPosition(angles, chain);
-    const error = vec3Sub(target, pos);
-    const errLen = vec3Len(error);
+    const posError = vec3Sub(target, pos);
+    const posErrLen = vec3Len(posError);
 
-    if (errLen < tolerance) {
+    if (posErrLen < tolerance) {
       return {
         angles,
         converged: true,
         iterations: iteration + 1,
-        finalError: errLen,
+        finalError: posErrLen,
       };
     }
 
-    const jacobian = computeJacobian(angles, chain, pos);
+    if (approachDir) {
+      // 6-DOF solve: 3 position rows + 3 orientation rows
+      const tipDir = computeTipDirection(angles, chain);
+      // Orientation error: desired approach dir minus current tip direction, weighted
+      const oriError = [
+        (approachDir[0] - tipDir[0]) * orientW,
+        (approachDir[1] - tipDir[1]) * orientW,
+        (approachDir[2] - tipDir[2]) * orientW,
+      ];
 
-    const jt = transpose3x7(jacobian);
-    const jjt = multiply3x3x7(jacobian, jt);
+      // Build 6xN Jacobian (N = nJoints)
+      // Rows 0-2: position, Rows 3-5: orientation (weighted)
+      const jacobian: number[][] = []; // 6 rows, nJoints columns
+      for (let r = 0; r < 6; r++) {
+        jacobian[r] = new Array(nJoints).fill(0);
+      }
 
-    for (let r = 0; r < 3; r++) {
-      jjt[r][r] += lambda * lambda;
-    }
+      for (let j = 0; j < nJoints; j++) {
+        const anglesP = [...angles];
+        anglesP[j] += EPS;
+        const posP = computeTipPosition(anglesP, chain);
+        const dirP = computeTipDirection(anglesP, chain);
 
-    const jjtInv = mat3x3Inverse(jjt);
-    const delta = mat3x3MultiplyVec(jjtInv, error);
-    const dq = multiply7x3Vec(jt, delta);
+        // Position partial derivatives
+        jacobian[0][j] = (posP[0] - pos[0]) / EPS;
+        jacobian[1][j] = (posP[1] - pos[1]) / EPS;
+        jacobian[2][j] = (posP[2] - pos[2]) / EPS;
 
-    // Adaptive step-size: clamp each joint delta to MAX_STEP_RAD
-    // This prevents overshooting when the target is far from the
-    // current configuration, improving convergence for large moves.
-    for (let i = 0; i < nJoints; i++) {
-      let step = dq[i];
-      if (step > MAX_STEP_RAD) step = MAX_STEP_RAD;
-      if (step < -MAX_STEP_RAD) step = -MAX_STEP_RAD;
+        // Orientation partial derivatives (weighted)
+        jacobian[3][j] = ((dirP[0] - tipDir[0]) / EPS) * orientW;
+        jacobian[4][j] = ((dirP[1] - tipDir[1]) / EPS) * orientW;
+        jacobian[5][j] = ((dirP[2] - tipDir[2]) / EPS) * orientW;
+      }
 
-      angles[i] += step;
-      angles[i] = Math.max(
-        chain.limits[i].lower,
-        Math.min(chain.limits[i].upper, angles[i]),
-      );
+      const error6 = [...posError, ...oriError];
+
+      // DLS: dq = J^T * (J*J^T + lambda^2 * I)^-1 * e
+      const jT = transpose(jacobian); // nJoints x 6
+      const jjT = matMul(jacobian, jT); // 6x6
+      for (let r = 0; r < 6; r++) {
+        jjT[r][r] += lambda * lambda;
+      }
+      const jjTInv = matNxNInverse(jjT);
+      const delta = matVecMul(jjTInv, error6);
+      const dq = matVecMul(jT, delta);
+
+      for (let i = 0; i < nJoints; i++) {
+        let step = dq[i];
+        if (step > MAX_STEP_RAD) step = MAX_STEP_RAD;
+        if (step < -MAX_STEP_RAD) step = -MAX_STEP_RAD;
+        angles[i] += step;
+        angles[i] = Math.max(
+          chain.limits[i].lower,
+          Math.min(chain.limits[i].upper, angles[i]),
+        );
+      }
+    } else {
+      // Position-only 3-DOF solve (original behavior)
+      const jacobian = computePositionJacobian(angles, chain, pos);
+
+      const jT = transpose(jacobian); // nJoints x 3
+      const jjT = matMul(jacobian, jT); // 3x3
+      for (let r = 0; r < 3; r++) {
+        jjT[r][r] += lambda * lambda;
+      }
+      const jjTInv = matNxNInverse(jjT);
+      const delta = matVecMul(jjTInv, posError);
+      const dq = matVecMul(jT, delta);
+
+      for (let i = 0; i < nJoints; i++) {
+        let step = dq[i];
+        if (step > MAX_STEP_RAD) step = MAX_STEP_RAD;
+        if (step < -MAX_STEP_RAD) step = -MAX_STEP_RAD;
+        angles[i] += step;
+        angles[i] = Math.max(
+          chain.limits[i].lower,
+          Math.min(chain.limits[i].upper, angles[i]),
+        );
+      }
     }
   }
 
@@ -132,59 +263,31 @@ export function solveIK(
   };
 }
 
-function computeJacobian(
+/**
+ * Compute 3xN position Jacobian via finite differences.
+ * Returns 3 rows (x,y,z), N columns (joints).
+ */
+function computePositionJacobian(
   angles: number[],
   chain: KinematicChain,
   currentPos: [number, number, number],
 ): number[][] {
   const nJoints = chain.joints.length;
-  const jacobian: number[][] = [];
+  const jacobian: number[][] = [
+    new Array(nJoints).fill(0),
+    new Array(nJoints).fill(0),
+    new Array(nJoints).fill(0),
+  ];
 
-  for (let i = 0; i < nJoints; i++) {
+  for (let j = 0; j < nJoints; j++) {
     const anglesPerturbed = [...angles];
-    anglesPerturbed[i] += EPS;
+    anglesPerturbed[j] += EPS;
     const posPerturbed = computeTipPosition(anglesPerturbed, chain);
 
-    jacobian.push([
-      (posPerturbed[0] - currentPos[0]) / EPS,
-      (posPerturbed[1] - currentPos[1]) / EPS,
-      (posPerturbed[2] - currentPos[2]) / EPS,
-    ]);
+    jacobian[0][j] = (posPerturbed[0] - currentPos[0]) / EPS;
+    jacobian[1][j] = (posPerturbed[1] - currentPos[1]) / EPS;
+    jacobian[2][j] = (posPerturbed[2] - currentPos[2]) / EPS;
   }
 
   return jacobian;
-}
-
-function transpose3x7(j: number[][]): number[][] {
-  const t: number[][] = [[], [], []];
-  for (let i = 0; i < j.length; i++) {
-    t[0][i] = j[i][0];
-    t[1][i] = j[i][1];
-    t[2][i] = j[i][2];
-  }
-  return t;
-}
-
-function multiply3x3x7(a: number[][], b: number[][]): number[][] {
-  const result: number[][] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      let sum = 0;
-      for (let k = 0; k < a.length; k++) {
-        sum += a[k][r] * b[c][k];
-      }
-      result[r][c] = sum;
-    }
-  }
-  return result;
-}
-
-function multiply7x3Vec(m: number[][], v: number[]): number[] {
-  const result: number[] = new Array(m[0].length).fill(0);
-  for (let i = 0; i < m[0].length; i++) {
-    for (let r = 0; r < 3; r++) {
-      result[i] += m[r][i] * v[r];
-    }
-  }
-  return result;
 }

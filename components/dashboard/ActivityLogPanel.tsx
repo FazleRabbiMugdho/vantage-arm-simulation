@@ -7,24 +7,8 @@ const SOURCE_LABELS: Record<AdapterName, string> = {
   joystick: 'Joystick',
   keyboard: 'Keyboard',
   voice: 'Voice',
-  autonomous: 'PIN Entry',
-  agentic: 'Agentic',
-};
-
-const SOURCE_COLORS: Record<AdapterName, string> = {
-  joystick: 'text-blue-400',
-  keyboard: 'text-purple-400',
-  voice: 'text-green-400',
-  autonomous: 'text-amber-400',
-  agentic: 'text-red-400',
-};
-
-const SOURCE_BG: Record<AdapterName, string> = {
-  joystick: 'bg-blue-500/10',
-  keyboard: 'bg-purple-500/10',
-  voice: 'bg-green-500/10',
-  autonomous: 'bg-amber-500/10',
-  agentic: 'bg-red-500/10',
+  autonomous: 'PIN',
+  agentic: 'Agent',
 };
 
 function commandSummary(cmd: MotionCommand): string {
@@ -32,9 +16,9 @@ function commandSummary(cmd: MotionCommand): string {
     case 'jog':
       return `Jog Δ(${cmd.deltaX.toFixed(3)}, ${cmd.deltaY.toFixed(3)}, ${cmd.deltaZ.toFixed(3)})`;
     case 'moveTo':
-      return `Move to (${cmd.target[0].toFixed(3)}, ${cmd.target[1].toFixed(3)}, ${cmd.target[2].toFixed(3)})`;
+      return `Move → (${cmd.target[0].toFixed(3)}, ${cmd.target[1].toFixed(3)}, ${cmd.target[2].toFixed(3)})`;
     case 'rotateJoint':
-      return `Rotate joint ${cmd.joint} by ${cmd.degrees}°`;
+      return `Rotate J${cmd.joint + 1} ${cmd.degrees > 0 ? '+' : ''}${cmd.degrees}°`;
     case 'pressKey':
       return `Press key ${cmd.keyIndex + 1}`;
   }
@@ -47,13 +31,13 @@ export default function ActivityLogPanel() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+        <h3 className="panel-heading">
           Activity Log
         </h3>
         {activityLog.length > 0 && (
           <button
             onClick={clearLog}
-            className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+            className="text-[10px] text-gray-600 transition-colors hover:text-amber-400"
           >
             Clear
           </button>
@@ -61,27 +45,36 @@ export default function ActivityLogPanel() {
       </div>
 
       {activityLog.length === 0 ? (
-        <p className="text-[10px] italic text-gray-600">
-          No commands yet. Use any control to see activity.
-        </p>
+        <div className="flex flex-col items-center gap-2 rounded border border-dashed border-gray-700/40 bg-graphite-700/30 px-3 py-5">
+          <svg className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="text-[10px] text-gray-600">
+            No commands yet. Use any control to see activity.
+          </p>
+        </div>
       ) : (
-        <div className="max-h-60 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700 bg-gray-900/50 p-2">
+        <div className="max-h-60 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700/30 bg-graphite-900/50 p-1.5">
           {activityLog.slice().reverse().map((entry, i) => (
             <div
               key={activityLog.length - 1 - i}
-              className={`rounded px-1.5 py-1 text-[10px] ${SOURCE_BG[entry.source] || 'bg-gray-800/50'}`}
+              className={`rounded px-2 py-1 text-[10px] ${
+                entry.result.accepted
+                  ? 'border-l-2 border-l-green-500/50 bg-green-500/5'
+                  : 'border-l-2 border-l-red-500/50 bg-red-500/5'
+              }`}
             >
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-gray-600 shrink-0">
+                <span className="shrink-0 font-mono text-gray-600">
                   {new Date(entry.timestamp).toLocaleTimeString([], {
                     minute: '2-digit',
                     second: '2-digit',
                   })}
                 </span>
-                <span className={`font-semibold shrink-0 ${SOURCE_COLORS[entry.source] || 'text-gray-400'}`}>
+                <span className="shrink-0 font-medium text-amber-500/80">
                   {SOURCE_LABELS[entry.source] || entry.source}
                 </span>
-                <span className="text-gray-300 truncate">
+                <span className="truncate text-gray-400">
                   {commandSummary(entry.command)}
                 </span>
                 <span className={`shrink-0 font-bold ${entry.result.accepted ? 'text-green-500' : 'text-red-400'}`}>
@@ -89,7 +82,7 @@ export default function ActivityLogPanel() {
                 </span>
               </div>
               {!entry.result.accepted && entry.result.reason && (
-                <p className="mt-0.5 text-red-400/80 truncate pl-[4.5rem]">
+                <p className="mt-0.5 truncate pl-12 text-red-400/70">
                   {entry.result.reason}
                 </p>
               )}

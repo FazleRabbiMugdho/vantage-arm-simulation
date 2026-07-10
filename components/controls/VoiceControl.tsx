@@ -107,13 +107,13 @@ export default function VoiceControl() {
   const isError = state === 'error' || !supported;
 
   const stateButtonClass = isListening
-    ? 'border-green-500 text-green-400 bg-green-900/20'
+    ? 'border-amber-500 text-amber-400 bg-amber-900/20 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
     : isError
-      ? 'border-yellow-600 text-yellow-400 bg-yellow-900/20'
-      : 'border-gray-600 text-gray-400 hover:bg-gray-700';
+      ? 'border-red-600/50 text-red-400 bg-red-900/20'
+      : 'border-gray-600/50 text-gray-500 hover:border-amber-500/30 hover:text-amber-400 hover:bg-amber-500/5';
 
   const stateLabel = isListening
-    ? 'Listening...'
+    ? 'Listening…'
     : isError
       ? 'Error'
       : 'Start Listening';
@@ -145,16 +145,16 @@ export default function VoiceControl() {
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <p className="panel-heading">
             Voice Control
           </p>
           <p
             className={`text-[11px] ${
               isListening
-                ? 'text-green-400'
+                ? 'text-amber-400'
                 : isError
-                  ? 'text-yellow-400'
-                  : 'text-gray-500'
+                  ? 'text-red-400'
+                  : 'text-gray-600'
             }`}
           >
             {errorMessage || stateLabel}
@@ -164,23 +164,23 @@ export default function VoiceControl() {
         {/* Live indicator dot */}
         {isListening && (
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
           </span>
         )}
       </div>
 
       {/* Unsupported / error message banner */}
       {!supported && errorMessage && (
-        <div className="rounded border border-yellow-700 bg-yellow-900/30 px-3 py-2">
-          <p className="text-xs text-yellow-300">{errorMessage}</p>
+        <div className="rounded border border-red-500/30 bg-red-500/5 px-3 py-2">
+          <p className="text-xs text-red-400">{errorMessage}</p>
         </div>
       )}
 
       {/* Permission / runtime error banner */}
       {supported && isError && errorMessage && (
-        <div className="rounded border border-yellow-700 bg-yellow-900/30 px-3 py-2">
-          <p className="text-xs text-yellow-300">{errorMessage}</p>
+        <div className="rounded border border-red-500/30 bg-red-500/5 px-3 py-2">
+          <p className="text-xs text-red-400">{errorMessage}</p>
         </div>
       )}
 

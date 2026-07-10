@@ -165,7 +165,8 @@ export class MotionController {
         reason: 'Target position contains invalid values',
       };
     }
-    return this.solveAndValidate(cmd.target, currentAngles);
+    // Use approach direction for moveTo — stylus should point downward (-Z in URDF frame)
+    return this.solveAndValidate(cmd.target, currentAngles, [0, 0, -1]);
   }
 
   private handlePressKey(
@@ -181,29 +182,30 @@ export class MotionController {
 
     const key = KEY_POSITIONS[cmd.keyIndex];
     const target: [number, number, number] = [key.x, key.y, key.z];
-    return this.solveAndValidate(target, currentAngles);
+    return this.solveAndValidate(target, currentAngles, [0, 0, -1]);
   }
 
   private solveAndValidate(
     target: [number, number, number],
     currentAngles: number[],
+    approachDirection?: [number, number, number],
   ): CommandResult {
-    let result = solveIK(currentAngles, target, KINEMATIC_CHAIN, {
+    const ikOptions = {
       tolerance: 0.002,
       maxIterations: 150,
       lambda: 0.1,
-    });
+      approachDirection,
+      orientationWeight: 0.3,
+    };
+
+    let result = solveIK(currentAngles, target, KINEMATIC_CHAIN, ikOptions);
 
     // Fallback: If it did not converge starting from the current angles
     // (which can happen when starting from a bent HOME_POSE due to local minima/joint limits),
     // try solving starting from a neutral zero-angles configuration.
     if (!result.converged) {
       const zeroAngles = new Array(currentAngles.length).fill(0);
-      const fallbackResult = solveIK(zeroAngles, target, KINEMATIC_CHAIN, {
-        tolerance: 0.002,
-        maxIterations: 150,
-        lambda: 0.1,
-      });
+      const fallbackResult = solveIK(zeroAngles, target, KINEMATIC_CHAIN, ikOptions);
       if (fallbackResult.converged) {
         result = fallbackResult;
       }
