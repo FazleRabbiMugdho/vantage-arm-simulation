@@ -72,12 +72,19 @@ export function createSpeechRecognizer(callbacks: SpeechCallbacks): SpeechRecogn
 
       recognition.onerror = (event: any) => {
         if (event.error === 'not-allowed') {
+          shouldRestart = false;
           callbacks.onError(
             'Microphone permission denied. Please allow microphone access in your browser settings.'
           );
           setState('error');
         } else if (event.error === 'no-speech') {
           // Browser continues listening — no action needed
+        } else if (event.error === 'audio-capture') {
+          shouldRestart = false;
+          callbacks.onError(
+            'Speech recognition error: audio-capture. No microphone was found or access is blocked.'
+          );
+          setState('error');
         } else {
           callbacks.onError(`Speech recognition error: ${event.error}`);
           setState('error');
@@ -91,7 +98,7 @@ export function createSpeechRecognizer(callbacks: SpeechCallbacks): SpeechRecogn
           } catch {
             setState('error');
           }
-        } else {
+        } else if (state !== 'error') {
           setState('idle');
         }
       };
