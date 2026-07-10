@@ -3,6 +3,7 @@ import { AnimationController } from './animation';
 import { useJointStore } from '@/lib/store/jointState';
 import { KINEMATIC_CHAIN, IK_JOINT_NAMES } from '@/lib/ik/chain';
 import { solveIK } from '@/lib/ik/solver';
+import { computeTipPosition } from '@/lib/ik/forwardKinematics';
 import { JOINT_LIMITS } from '@/lib/config/jointLimits';
 import { KEY_POSITIONS } from '@/lib/config/keyConfig';
 
@@ -121,7 +122,7 @@ export class MotionController {
     cmd: { deltaX: number; deltaY: number; deltaZ: number },
     currentAngles: number[],
   ): CommandResult {
-    const currentPos = useJointStore.getState().eePosition;
+    const currentPos = computeTipPosition(currentAngles, KINEMATIC_CHAIN);
 
     const target: [number, number, number] = [
       currentPos[0] + cmd.deltaX,
