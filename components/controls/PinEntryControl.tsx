@@ -151,6 +151,10 @@ export default function PinEntryControl() {
           value={pin}
           onChange={handleInput}
           disabled={running}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           placeholder="e.g. 123456"
           className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-center font-mono text-lg tracking-[0.5em] text-gray-100 placeholder:text-gray-600 focus:border-sky-500 focus:outline-none disabled:opacity-50"
         />
