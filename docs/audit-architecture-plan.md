@@ -1,4 +1,4 @@
-# Audit: Prompt 1 — Architecture Plan
+# Audit: Architecture Plan (Prompt 1)
 
 **Mode:** Plan (no commit)
 **Date:** 2026-07-10

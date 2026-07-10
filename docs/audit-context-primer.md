@@ -1,4 +1,4 @@
-# Audit: Prompt 0 — Context Primer
+# Audit: Context Primer (Prompt 0)
 
 **Mode:** Plan (no commit)
 **Date:** 2026-07-10

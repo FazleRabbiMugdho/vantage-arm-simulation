@@ -21,13 +21,39 @@ This file documents the agent configuration and conventions used when building t
 - After each prompt, run that step's verification checklist before committing.
 - If a checklist item fails, report the failure to the agent and ask it to fix that specific item — do not proceed to the next prompt with a known-broken step.
 
-### Branching strategy
-- **Create a new branch** for every prompt before starting work: `git checkout -b prompt-XX`
-- **Push the branch** to GitHub: `git push -u origin prompt-XX`
-- **Create a Pull Request** on GitHub from `prompt-XX` into `master` — merge via PR, not direct merge.
+### Branching & naming convention
+- **Branch names**: use professional kebab-case names, not `prompt-XX`.
+  - Examples: `key-panel`, `ik-solver`, `voice-control`, `deploy-readiness`.
+- **Audit files**: `docs/audit-<name>.md` matching the branch name.
+- **Create a new branch** for every prompt before starting work: `git checkout -b <name>`
+- **Push the branch** to GitHub: `git push -u origin <name>`
+- **Create a Pull Request** on GitHub from the branch into `master` — merge via PR, not direct merge.
 - **Keep all branches** — never delete them locally or remotely. This preserves full history per prompt.
 - After the PR is merged, switch back to master and pull: `git checkout master && git pull`
 - This keeps each prompt's work isolated, enables PR review, and gives a clean `/undo` path.
+
+### Professional branch name map
+
+| Prompt | Name |
+|--------|------|
+| 0 | `context-primer` |
+| 1 | `architecture-plan` |
+| 2 | `scaffold` |
+| 3 | `urdf-viewer` |
+| 4 | `key-panel` |
+| 5 | `telemetry-dashboard` |
+| 6 | `ik-solver` |
+| 7 | `motion-controller` |
+| 8 | `joystick-control` |
+| 9 | `keyboard-control` |
+| 10 | `autonomous-pin-entry` |
+| 11 | `voice-control` |
+| 12 | `unify-dashboard` |
+| 13 | `visual-design` |
+| 14 | `agentic-bonus` |
+| 15 | `deploy-readiness` |
+| 16 | `judge-documentation` |
+| 17 | `electrical-schematic` |
 
 ### Audit file requirement
 - After every prompt (both Plan and Build mode), create an audit file at:

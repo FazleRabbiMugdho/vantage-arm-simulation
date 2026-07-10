@@ -1,4 +1,4 @@
-# Audit: Prompt 3 — URDF Viewer
+# Audit: URDF Viewer (Prompt 3)
 
 **Mode:** Build
 **Date:** 2026-07-10

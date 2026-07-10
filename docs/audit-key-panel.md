@@ -1,4 +1,4 @@
-# Audit: Prompt 04 — Render the Key Panel
+# Audit: Key Panel (Prompt 4)
 
 **Mode:** Build
 **Date:** 2026-07-10

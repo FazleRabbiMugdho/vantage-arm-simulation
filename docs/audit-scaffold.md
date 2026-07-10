@@ -1,4 +1,4 @@
-# Audit: Prompt 2 — Scaffold the App
+# Audit: Scaffold (Prompt 2)
 
 **Mode:** Build
 **Date:** 2026-07-10
