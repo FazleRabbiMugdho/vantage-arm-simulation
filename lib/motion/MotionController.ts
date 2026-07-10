@@ -188,11 +188,26 @@ export class MotionController {
     target: [number, number, number],
     currentAngles: number[],
   ): CommandResult {
-    const result = solveIK(currentAngles, target, KINEMATIC_CHAIN, {
+    let result = solveIK(currentAngles, target, KINEMATIC_CHAIN, {
       tolerance: 0.002,
-      maxIterations: 100,
+      maxIterations: 150,
       lambda: 0.1,
     });
+
+    // Fallback: If it did not converge starting from the current angles
+    // (which can happen when starting from a bent HOME_POSE due to local minima/joint limits),
+    // try solving starting from a neutral zero-angles configuration.
+    if (!result.converged) {
+      const zeroAngles = new Array(currentAngles.length).fill(0);
+      const fallbackResult = solveIK(zeroAngles, target, KINEMATIC_CHAIN, {
+        tolerance: 0.002,
+        maxIterations: 150,
+        lambda: 0.1,
+      });
+      if (fallbackResult.converged) {
+        result = fallbackResult;
+      }
+    }
 
     if (!result.converged) {
       return {
