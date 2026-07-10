@@ -1,5 +1,5 @@
 {
-  "name": "vantage-robotics-sim",
+  "name": "vantage-arm-simulation",
   "version": "1.0.0",
   "private": true,
   "scripts": {

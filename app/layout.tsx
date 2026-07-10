@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Vantage Robotics Simulation Suite',
+  title: 'Vantage Arm Simulation',
   description: 'Browser-based 6-DOF industrial arm control simulation',
 };
 
