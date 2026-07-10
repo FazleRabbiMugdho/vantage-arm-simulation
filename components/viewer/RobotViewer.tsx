@@ -250,12 +250,40 @@ export default function RobotViewer() {
         if (tip) {
           const localPos = new THREE.Vector3();
           tip.getWorldPosition(localPos);
+          
+          // Let's also check position relative to base_link
+          const baseLink = robot.getObjectByName('base_link');
+          const localToBase = localPos.clone();
+          if (baseLink) {
+            baseLink.worldToLocal(localToBase);
+          }
           robot.worldToLocal(localPos);
+
           useJointStore.getState().setEePosition([
-            Math.round(localPos.x * 1000) / 1000,
-            Math.round(localPos.y * 1000) / 1000,
-            Math.round(localPos.z * 1000) / 1000,
+            Math.round(localToBase.x * 1000) / 1000,
+            Math.round(localToBase.y * 1000) / 1000,
+            Math.round(localToBase.z * 1000) / 1000,
           ]);
+
+          // Throttled logging to developer console
+          if (!(window as any).lastLogTime || Date.now() - (window as any).lastLogTime > 5000) {
+            (window as any).lastLogTime = Date.now();
+            console.log('--- 3D Viewer Coordinates Check ---');
+            console.log('Joint Angles (deg):', state.jointAngles.map(a => (a * 180 / Math.PI).toFixed(1)));
+            console.log('Stylus Tip relative to robot:', localPos.x.toFixed(3), localPos.y.toFixed(3), localPos.z.toFixed(3));
+            console.log('Stylus Tip relative to base_link:', localToBase.x.toFixed(3), localToBase.y.toFixed(3), localToBase.z.toFixed(3));
+            
+            // Log other joint positions to find the mismatch
+            ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6', 'stylus_pitch'].forEach(name => {
+              const jObj = robot.getObjectByName(name);
+              if (jObj) {
+                const jPos = new THREE.Vector3();
+                jObj.getWorldPosition(jPos);
+                if (baseLink) baseLink.worldToLocal(jPos);
+                console.log(`Joint ${name} local pos:`, jPos.x.toFixed(3), jPos.y.toFixed(3), jPos.z.toFixed(3));
+              }
+            });
+          }
         }
       }
 
