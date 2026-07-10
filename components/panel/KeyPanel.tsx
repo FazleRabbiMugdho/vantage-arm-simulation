@@ -31,7 +31,7 @@ function makeTextSprite(text: string): THREE.Sprite {
   return sprite;
 }
 
-export function createKeyPanel(scene: THREE.Scene): THREE.Group {
+export function createKeyPanel(parent: THREE.Object3D): THREE.Group {
   const group = new THREE.Group();
   group.name = 'key-panel';
 
@@ -54,6 +54,6 @@ export function createKeyPanel(scene: THREE.Scene): THREE.Group {
     group.add(sprite);
   });
 
-  scene.add(group);
+  parent.add(group);
   return group;
 }

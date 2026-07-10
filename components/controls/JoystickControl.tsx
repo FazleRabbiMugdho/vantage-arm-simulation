@@ -6,9 +6,8 @@ import { motionController } from '@/lib/motion/MotionController';
 const PAD_SIZE = 160;
 const CENTER = PAD_SIZE / 2;
 const MAX_RADIUS = CENTER - 4;
-const SCALE = 0.000667;
+const SCALE = 0.0015; // Increased scale for more drag sensitivity/intensity
 const THROTTLE_MS = 40;
-const Z_STEP = 0.008;
 
 export default function JoystickControl() {
   const padRef = useRef<HTMLDivElement>(null);
@@ -16,6 +15,7 @@ export default function JoystickControl() {
   const lastEmit = useRef(0);
   const [active, setActive] = useState(false);
   const [knobPos, setKnobPos] = useState<{ x: number; y: number } | null>(null);
+  const [stepSize, setStepSize] = useState(0.025); // Default to 25mm for higher intensity
 
   const emitJog = useCallback((dx: number, dy: number, dz: number) => {
     const now = Date.now();
@@ -56,66 +56,130 @@ export default function JoystickControl() {
   }, []);
 
   return (
-    <div className="flex items-center gap-4">
-      {/* XY pad */}
-      <div
-        ref={padRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        className={`relative cursor-crosshair select-none rounded-lg border-2 transition-colors ${
-          active
-            ? 'border-sky-400 bg-sky-900/30'
-            : 'border-gray-600 bg-gray-800'
-        }`}
-        style={{ width: PAD_SIZE, height: PAD_SIZE, touchAction: 'none' }}
-      >
-        {/* Crosshair lines */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gray-600/50" />
-          <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gray-600/50" />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        {/* XY pad */}
+        <div
+          ref={padRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`relative cursor-crosshair select-none rounded-lg border-2 transition-colors ${
+            active
+              ? 'border-sky-400 bg-sky-900/30'
+              : 'border-gray-600 bg-gray-800'
+          }`}
+          style={{ width: PAD_SIZE, height: PAD_SIZE, touchAction: 'none' }}
+        >
+          {/* Crosshair lines */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gray-600/50" />
+            <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gray-600/50" />
+          </div>
+          {/* Knob */}
+          {knobPos && (
+            <div
+              className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-400 bg-sky-500/40"
+              style={{ left: CENTER + knobPos.x, top: CENTER + knobPos.y }}
+            />
+          )}
+          {/* Labels */}
+          <span className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 text-[10px] text-gray-500">
+            Y
+          </span>
+          <span className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-500">
+            Y-
+          </span>
+          <span className="pointer-events-none absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
+            X-
+          </span>
+          <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
+            X
+          </span>
         </div>
-        {/* Knob */}
-        {knobPos && (
-          <div
-            className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-400 bg-sky-500/40"
-            style={{ left: CENTER + knobPos.x, top: CENTER + knobPos.y }}
-          />
-        )}
-        {/* Labels */}
-        <span className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 text-[10px] text-gray-500">
-          Y
-        </span>
-        <span className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-500">
-          Y-
-        </span>
-        <span className="pointer-events-none absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
-          X-
-        </span>
-        <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
-          X
-        </span>
+
+        {/* Manual Axis Jog Buttons */}
+        <div className="flex gap-2.5">
+          {/* X controls */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-semibold text-gray-400">X</span>
+            <button
+              onPointerDown={() => emitJog(stepSize, 0, 0)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move X+"
+            >
+              +
+            </button>
+            <button
+              onPointerDown={() => emitJog(-stepSize, 0, 0)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move X-"
+            >
+              −
+            </button>
+          </div>
+
+          {/* Y controls */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-semibold text-gray-400">Y</span>
+            <button
+              onPointerDown={() => emitJog(0, stepSize, 0)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move Y+"
+            >
+              +
+            </button>
+            <button
+              onPointerDown={() => emitJog(0, -stepSize, 0)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move Y-"
+            >
+              −
+            </button>
+          </div>
+
+          {/* Z controls */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-semibold text-gray-400">Z</span>
+            <button
+              onPointerDown={() => emitJog(0, 0, stepSize)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move Z+"
+            >
+              +
+            </button>
+            <button
+              onPointerDown={() => emitJog(0, 0, -stepSize)}
+              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              title="Move Z-"
+            >
+              −
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Z controls */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] text-gray-500">Z</span>
-        <button
-          onPointerDown={() => emitJog(0, 0, Z_STEP)}
-          className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm text-gray-200 hover:bg-gray-600 active:bg-gray-500"
-        >
-          +
-        </button>
-        <button
-          onPointerDown={() => emitJog(0, 0, -Z_STEP)}
-          className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm text-gray-200 hover:bg-gray-600 active:bg-gray-500"
-        >
-          −
-        </button>
-        <span className="mt-1 text-[10px] text-gray-500">
-          {Z_STEP * 1000}mm
+      {/* Step size selector */}
+      <div className="flex flex-col gap-1.5 border-t border-gray-700/50 pt-3">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+          Jog Step Size
         </span>
+        <div className="flex rounded bg-gray-900/50 p-0.5">
+          {[0.005, 0.010, 0.025, 0.050].map((val) => (
+            <button
+              key={val}
+              onClick={() => setStepSize(val)}
+              className={`flex-1 rounded px-2 py-1 text-center font-mono text-[10px] font-medium transition-colors ${
+                stepSize === val
+                  ? 'bg-sky-500 text-white font-bold'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+              }`}
+            >
+              {val * 1000}mm
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
