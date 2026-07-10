@@ -212,6 +212,29 @@ export class MotionController {
       }
     }
 
+    // Fallback: If orientation-constrained solve still fails, retry without orientation
+    // (targets far from the arm's natural orientation zone may not converge with a stiff weight).
+    if (!result.converged && approachDirection) {
+      const posOnlyResult = solveIK(currentAngles, target, KINEMATIC_CHAIN, {
+        tolerance: 0.002,
+        maxIterations: 150,
+        lambda: 0.1,
+      });
+      if (posOnlyResult.converged) {
+        result = posOnlyResult;
+      } else {
+        const zeroPosResult = solveIK(
+          new Array(currentAngles.length).fill(0),
+          target,
+          KINEMATIC_CHAIN,
+          { tolerance: 0.002, maxIterations: 150, lambda: 0.1 },
+        );
+        if (zeroPosResult.converged) {
+          result = zeroPosResult;
+        }
+      }
+    }
+
     if (!result.converged) {
       return {
         accepted: false,
