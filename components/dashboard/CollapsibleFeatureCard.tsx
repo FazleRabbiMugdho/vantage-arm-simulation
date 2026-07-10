@@ -50,7 +50,7 @@ export default function CollapsibleFeatureCard({
       className={`rounded-lg border bg-graphite-800 transition-all duration-300 ${
         highlight
           ? 'border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-          : 'border-gray-700/40 hover:border-gray-700/80'
+          : 'border-graphite-700 hover:border-graphite-600'
       }`}
     >
       {/* Header Button */}
@@ -74,7 +74,7 @@ export default function CollapsibleFeatureCard({
               {title}
             </h3>
             {/* Description */}
-            <p className="mt-0.5 text-[10px] text-gray-500 truncate leading-relaxed">
+            <p className="mt-0.5 text-[10px] text-gray-400 truncate leading-relaxed">
               {description}
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function CollapsibleFeatureCard({
         role="region"
         aria-labelledby={`card-header-${id}`}
         className={`overflow-hidden transition-all duration-200 ease-in-out ${
-          isOpen ? 'max-h-[800px] border-t border-gray-700/30 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+          isOpen ? 'max-h-[800px] border-t border-graphite-700 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
         }`}
       >
         <div className="p-4 bg-graphite-900/30">
