@@ -13,6 +13,7 @@ export default function VoiceControl() {
   const [state, setState] = useState<SpeechState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
   const [currentParse, setCurrentParse] = useState<ParsedCommand | null>(null);
   const [entries, setEntries] = useState<FeedbackEntry[]>([]);
   const [supported, setSupported] = useState(true);
@@ -21,10 +22,23 @@ export default function VoiceControl() {
   const idRef = useRef(0);
 
   useEffect(() => {
+    const hasAPI = !!(
+      (typeof window !== 'undefined' && (window as any).SpeechRecognition) ||
+      (typeof window !== 'undefined' && (window as any).webkitSpeechRecognition)
+    );
+    console.log('[Voice] Web Speech API available:', hasAPI);
+
     const recognizer = createSpeechRecognizer({
+      onInterimResult: (text: string) => {
+        console.log('[Voice] interim:', text);
+        setInterimTranscript(text);
+      },
       onResult: (text: string) => {
+        console.log('[Voice] final:', text);
+        setInterimTranscript('');
         setTranscript(text);
         const parsed = parseCommand(text);
+        console.log('[Voice] parsed:', parsed);
         setCurrentParse(parsed);
 
         const entry: FeedbackEntry = {
@@ -37,16 +51,19 @@ export default function VoiceControl() {
         setEntries((prev) => [...prev, entry]);
 
         if (parsed.recognized && parsed.command) {
+          console.log('[Voice] executing:', parsed.command);
           motionController.execute(parsed.command, 'voice');
         }
       },
       onStateChange: (newState: SpeechState) => {
+        console.log('[Voice] state:', newState);
         setState(newState);
         if (newState !== 'error') {
           setErrorMessage(null);
         }
       },
       onError: (message: string) => {
+        console.log('[Voice] error:', message);
         setErrorMessage(message);
       },
     });
@@ -61,6 +78,7 @@ export default function VoiceControl() {
     }
 
     return () => {
+      console.log('[Voice] cleanup');
       recognizer.stop();
     };
   }, []);
@@ -70,12 +88,16 @@ export default function VoiceControl() {
     if (!r) return;
 
     if (state === 'listening') {
+      console.log('[Voice] stopping...');
       r.stop();
       setTranscript('');
+      setInterimTranscript('');
       setCurrentParse(null);
     } else {
+      console.log('[Voice] starting...');
       setErrorMessage(null);
       setTranscript('');
+      setInterimTranscript('');
       setCurrentParse(null);
       r.start();
     }
@@ -162,12 +184,27 @@ export default function VoiceControl() {
         </div>
       )}
 
+      {/* Command reference (collapsible) */}
+      <details className="group text-[10px]">
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-300 transition-colors">
+          Supported commands ▸
+        </summary>
+        <div className="mt-1 space-y-1 rounded border border-gray-700 bg-gray-900/50 px-3 py-2 font-mono">
+          <p className="text-gray-400">move up / down / left / right / forward / back</p>
+          <p className="text-gray-500">  (optional: 10 cm, 50 mm, 0.1 meters)</p>
+          <p className="text-gray-400 mt-1">rotate joint 3 left 10 degrees</p>
+          <p className="text-gray-400">rotate base right 5 degrees</p>
+          <p className="text-gray-400 mt-1">press key 3 / press 5 / hit key 1</p>
+        </div>
+      </details>
+
       {/* Feedback panel */}
       <VoiceFeedbackPanel
         entries={entries}
         currentTranscript={transcript || undefined}
         currentDescription={currentParse?.description}
         currentRecognized={currentParse?.recognized}
+        interimTranscript={interimTranscript || undefined}
       />
     </div>
   );

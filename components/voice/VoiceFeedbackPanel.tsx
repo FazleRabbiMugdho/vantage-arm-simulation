@@ -13,6 +13,7 @@ interface VoiceFeedbackPanelProps {
   currentTranscript?: string;
   currentDescription?: string;
   currentRecognized?: boolean;
+  interimTranscript?: string;
 }
 
 export default function VoiceFeedbackPanel({
@@ -20,10 +21,21 @@ export default function VoiceFeedbackPanel({
   currentTranscript,
   currentDescription,
   currentRecognized,
+  interimTranscript,
 }: VoiceFeedbackPanelProps) {
   return (
     <div className="space-y-2">
-      {/* Live current result */}
+      {/* Live interim result (shows while speaking) */}
+      {interimTranscript && (
+        <div className="rounded border border-dashed border-gray-700 bg-gray-800/30 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+            Listening...
+          </p>
+          <p className="text-sm italic text-gray-400">&ldquo;{interimTranscript}&rdquo;</p>
+        </div>
+      )}
+
+      {/* Final result */}
       {currentTranscript && (
         <div className="rounded border border-gray-700 bg-gray-800/50 p-2">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
@@ -38,6 +50,13 @@ export default function VoiceFeedbackPanel({
             {currentRecognized ? `→ ${currentDescription}` : '✗ Not recognized'}
           </p>
         </div>
+      )}
+
+      {/* Empty state hint */}
+      {!interimTranscript && !currentTranscript && entries.length === 0 && (
+        <p className="text-[10px] text-gray-600 italic">
+          Click the mic button and speak. Transcript appears here.
+        </p>
       )}
 
       {/* History */}

@@ -2,6 +2,7 @@ export type SpeechState = 'idle' | 'listening' | 'error';
 
 export interface SpeechCallbacks {
   onResult: (text: string) => void;
+  onInterimResult?: (text: string) => void;
   onStateChange: (state: SpeechState) => void;
   onError: (message: string) => void;
 }
@@ -52,11 +53,17 @@ export function createSpeechRecognizer(callbacks: SpeechCallbacks): SpeechRecogn
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: any) => {
+        let interimTranscript = '';
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
           }
+        }
+        if (interimTranscript.trim()) {
+          callbacks.onInterimResult?.(interimTranscript.trim());
         }
         if (finalTranscript.trim()) {
           callbacks.onResult(finalTranscript.trim());
