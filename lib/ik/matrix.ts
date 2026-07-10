@@ -44,13 +44,13 @@ export function mat4Rotate(axis: [number, number, number], angle: number): Mat4 
 
 export function mat4Multiply(a: Mat4, b: Mat4): Mat4 {
   const out: number[] = new Array(16);
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 4; col++) {
-      out[row * 4 + col] =
-        a[row * 4 + 0] * b[0 * 4 + col] +
-        a[row * 4 + 1] * b[1 * 4 + col] +
-        a[row * 4 + 2] * b[2 * 4 + col] +
-        a[row * 4 + 3] * b[3 * 4 + col];
+  for (let col = 0; col < 4; col++) {
+    for (let row = 0; row < 4; row++) {
+      let sum = 0;
+      for (let k = 0; k < 4; k++) {
+        sum += a[k * 4 + row] * b[col * 4 + k];
+      }
+      out[col * 4 + row] = sum;
     }
   }
   return out as Mat4;
