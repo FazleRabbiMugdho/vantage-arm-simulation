@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
   } catch (err: any) {
     console.error('[Agentic] Error:', err.message);
 
-    if (err.message?.includes('API_KEY')) {
+    if (err.message?.includes('API_KEY') || err.message?.includes('API key')) {
       return NextResponse.json(
         { kind: 'error', error: 'Invalid or expired Gemini API key.' },
         { status: 500 }
@@ -142,9 +142,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (
+      err.message?.includes('quota') ||
+      err.message?.includes('Quota') ||
+      err.message?.includes('limit') ||
+      err.message?.includes('429') ||
+      err.message?.includes('Requests')
+    ) {
+      return NextResponse.json(
+        { kind: 'error', error: 'Gemini API quota exceeded or rate limited. Please check your AI Studio plan and billing details.' },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
-      { kind: 'error', error: 'Agentic service unavailable. Using demo fallback.' },
-      { status: 503 }
+      { kind: 'error', error: `Agentic service error: ${err.message}` },
+      { status: 500 }
     );
   }
 }
