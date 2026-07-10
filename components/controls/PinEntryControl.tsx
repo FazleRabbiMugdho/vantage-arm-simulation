@@ -84,7 +84,11 @@ export default function PinEntryControl() {
       const approachPos: [number, number, number] = [key.x, key.y, key.z + APPROACH_OFFSET];
       setCurrentStep({ digit: i + 1, phase: 'approach' });
       console.log('[PinEntryControl] Sending moveTo approachPos:', approachPos);
-      let result = motionController.execute({ type: 'moveTo', target: approachPos }, 'autonomous');
+      let result = motionController.execute(
+        { type: 'moveTo', target: approachPos },
+        'autonomous',
+        `Approach PIN ${digits[i]} at (${key.x.toFixed(3)}, ${key.y.toFixed(3)}, ${key.z.toFixed(3)})`,
+      );
       console.log('[PinEntryControl] Approach result:', result);
       addStep({ digitIndex: i + 1, phase: 'approach', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
       if (!result.accepted) {
@@ -99,7 +103,11 @@ export default function PinEntryControl() {
       const descendPos: [number, number, number] = [key.x, key.y, key.z];
       setCurrentStep({ digit: i + 1, phase: 'descend' });
       console.log('[PinEntryControl] Sending moveTo descendPos:', descendPos);
-      result = motionController.execute({ type: 'moveTo', target: descendPos }, 'autonomous');
+      result = motionController.execute(
+        { type: 'moveTo', target: descendPos },
+        'autonomous',
+        `Descend to PIN ${digits[i]} at (${key.x.toFixed(3)}, ${key.y.toFixed(3)}, ${key.z.toFixed(3)})`,
+      );
       console.log('[PinEntryControl] Descend result:', result);
       addStep({ digitIndex: i + 1, phase: 'descend', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
       if (!result.accepted) {
@@ -113,7 +121,11 @@ export default function PinEntryControl() {
       // Retract
       setCurrentStep({ digit: i + 1, phase: 'retract' });
       console.log('[PinEntryControl] Sending moveTo retractPos (same as approach):', approachPos);
-      result = motionController.execute({ type: 'moveTo', target: approachPos }, 'autonomous');
+      result = motionController.execute(
+        { type: 'moveTo', target: approachPos },
+        'autonomous',
+        `Retract from PIN ${digits[i]}`,
+      );
       console.log('[PinEntryControl] Retract result:', result);
       addStep({ digitIndex: i + 1, phase: 'retract', status: result.accepted ? 'accepted' : 'rejected', reason: result.reason });
       if (!result.accepted) {
