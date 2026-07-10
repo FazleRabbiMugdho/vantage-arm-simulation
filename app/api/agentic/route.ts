@@ -60,91 +60,137 @@ export async function POST(request: NextRequest) {
     }
 
     const { message, context } = parsed.data;
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { kind: 'error', error: 'Gemini API key not configured. Set GEMINI_API_KEY in .env.local' },
-        { status: 500 }
-      );
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
     const systemPrompt = buildSystemPrompt(context);
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: systemPrompt,
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: buildGeminiResponseSchema(),
-      },
-    });
-
-    const result = await model.generateContent(message);
-    const text = result.response.text();
-
-    if (!text || !text.trim()) {
-      return NextResponse.json(
-        { kind: 'question', question: 'I did not get a response. Could you rephrase your instruction?' },
-        { status: 200 }
-      );
+    // Try Gemini first if key exists
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        console.log('[Agentic] Trying Gemini...');
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-2.0-flash',
+          systemInstruction: systemPrompt,
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: buildGeminiResponseSchema(),
+          },
+        });
+        const result = await model.generateContent(message);
+        const text = result.response.text();
+        if (text && text.trim()) {
+          const geminiResponse = JSON.parse(text);
+          const validated = GeminiResponseSchema.safeParse(geminiResponse);
+          if (validated.success) {
+            const response = validated.data;
+            if (response.kind === 'command') {
+              const command: MotionCommand = geminiToMotionCommand(response);
+              return NextResponse.json({
+                kind: 'command',
+                command,
+                explanation: response.explanation,
+              });
+            } else {
+              return NextResponse.json({
+                kind: 'question',
+                question: response.question,
+              });
+            }
+          }
+        }
+      } catch (geminiErr: any) {
+        console.error('[Agentic] Gemini failed:', geminiErr.message);
+        // If it's a safety error, return it immediately rather than falling back
+        if (geminiErr.message?.includes('SAFETY') || geminiErr.message?.includes('safety')) {
+          return NextResponse.json(
+            { kind: 'question', question: 'Your instruction was blocked by safety filters. Please rephrase.' },
+            { status: 200 }
+          );
+        }
+      }
     }
 
-    let geminiResponse: any;
-    try {
-      geminiResponse = JSON.parse(text);
-    } catch {
-      return NextResponse.json(
-        { kind: 'question', question: 'I had trouble understanding that. Could you rephrase?' },
-        { status: 200 }
-      );
+    // Try Groq as fallback if key exists
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+      try {
+        console.log('[Agentic] Trying Groq fallback...');
+        const systemInstruction = systemPrompt + `\n\nYou MUST respond with a JSON object matching this schema:
+{
+  "kind": "command" | "question",
+  "command": {
+    "type": "jog" | "moveTo" | "rotateJoint" | "pressKey",
+    "deltaX": number,
+    "deltaY": number,
+    "deltaZ": number,
+    "target": [number, number, number],
+    "joint": number,
+    "degrees": number,
+    "keyIndex": number
+  },
+  "question": string,
+  "explanation": string
+}
+Only output the JSON object, nothing else.`;
+        
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: systemInstruction },
+              { role: 'user', content: message }
+            ],
+            response_format: { type: 'json_object' }
+          })
+        });
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          const parsedJson = JSON.parse(content);
+          const validated = GeminiResponseSchema.safeParse(parsedJson);
+          if (validated.success) {
+            const responseData = validated.data;
+            if (responseData.kind === 'command') {
+              const command: MotionCommand = geminiToMotionCommand(responseData);
+              return NextResponse.json({
+                kind: 'command',
+                command,
+                explanation: responseData.explanation,
+              });
+            } else {
+              return NextResponse.json({
+                kind: 'question',
+                question: responseData.question,
+              });
+            }
+          } else {
+            console.error('[Agentic] Groq validation failed:', validated.error.message);
+          }
+        } else if (data.error) {
+          console.error('[Agentic] Groq API returned error:', data.error.message);
+        }
+      } catch (groqErr: any) {
+        console.error('[Agentic] Groq fallback failed:', groqErr.message);
+      }
     }
 
-    const validated = GeminiResponseSchema.safeParse(geminiResponse);
-    if (!validated.success) {
-      return NextResponse.json(
-        { kind: 'question', question: 'I parsed your instruction but the result did not pass validation. Could you try a simpler command?' },
-        { status: 200 }
-      );
-    }
-
-    const response = validated.data;
-
-    if (response.kind === 'command') {
-      const command: MotionCommand = geminiToMotionCommand(response);
-      return NextResponse.json({
-        kind: 'command',
-        command,
-        explanation: response.explanation,
-      });
-    }
-
-    return NextResponse.json({
-      kind: 'question',
-      question: response.question,
-    });
+    // No API succeeded
+    return NextResponse.json(
+      { kind: 'error', error: 'AI service rate-limited or unavailable. Please check your API key quotas.' },
+      { status: 503 }
+    );
 
   } catch (err: any) {
-    console.error('[Agentic] Error:', err.message);
-
-    if (err.message?.includes('API_KEY')) {
-      return NextResponse.json(
-        { kind: 'error', error: 'Invalid or expired Gemini API key.' },
-        { status: 500 }
-      );
-    }
-
-    if (err.message?.includes('SAFETY') || err.message?.includes('safety')) {
-      return NextResponse.json(
-        { kind: 'question', question: 'Your instruction was blocked by safety filters. Please rephrase.' },
-        { status: 200 }
-      );
-    }
-
+    console.error('[Agentic] General Error:', err.message);
     return NextResponse.json(
-      { kind: 'error', error: 'Agentic service unavailable. Using demo fallback.' },
-      { status: 503 }
+      { kind: 'error', error: `Agentic service error: ${err.message}` },
+      { status: 500 }
     );
   }
 }
