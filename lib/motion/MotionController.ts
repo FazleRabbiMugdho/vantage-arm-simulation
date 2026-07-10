@@ -9,6 +9,7 @@ import { KEY_POSITIONS } from '@/lib/config/keyConfig';
 export class MotionController {
   private anim = new AnimationController();
   private pendingAngleUpdate: number[] | null = null;
+  private _resolveIdle: (() => void) | null = null;
 
   execute(command: MotionCommand, source: AdapterName): CommandResult {
     const result = this.resolveAndValidate(command);
@@ -30,9 +31,18 @@ export class MotionController {
     return result;
   }
 
+  async waitUntilIdle(): Promise<void> {
+    if (!this.anim.isRunning()) return;
+    return new Promise((resolve) => {
+      this._resolveIdle = resolve;
+    });
+  }
+
   stopAnimation() {
     this.anim.stop();
     this.pendingAngleUpdate = null;
+    this._resolveIdle?.();
+    this._resolveIdle = null;
   }
 
   isAnimating(): boolean {
@@ -50,6 +60,8 @@ export class MotionController {
       },
       () => {
         this.pendingAngleUpdate = null;
+        this._resolveIdle?.();
+        this._resolveIdle = null;
       },
       200,
     );

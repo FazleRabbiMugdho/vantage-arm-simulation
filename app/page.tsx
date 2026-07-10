@@ -22,6 +22,11 @@ const KeyboardControl = dynamic(
   { ssr: false }
 );
 
+const PinEntryControl = dynamic(
+  () => import('@/components/controls/PinEntryControl'),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
@@ -32,7 +37,7 @@ export default function Home() {
         <div className="flex-1">
           <RobotViewer />
         </div>
-        <aside className="flex w-72 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800">
+        <aside className="flex w-80 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800">
           <div className="flex-1 overflow-y-auto">
             <TelemetryPanel />
           </div>
@@ -44,6 +49,9 @@ export default function Home() {
           </div>
           <div className="border-t border-gray-700 p-4">
             <KeyboardControl />
+          </div>
+          <div className="border-t border-gray-700 p-4">
+            <PinEntryControl />
           </div>
         </aside>
       </div>
