@@ -78,6 +78,18 @@ console.log('--- Non-Zero Initial Pose ---');
 const bentAngles = [0, 0.5, -0.8, 0, 0.3, 0, 0];
 runTest('Key 3 from bent pose', [0.6, 0.05, 0.05], bentAngles);
 
+// Test 13: Start from HOME_POSE to all keys
+console.log('--- HOME_POSE Initial Pose to All Keys ---');
+const HOME_POSE = [0, 0.8, -1.0, 0, 0.8, 0, 0];
+for (let i = 0; i < KEY_POSITIONS.length; i++) {
+  const k = KEY_POSITIONS[i];
+  runTest(`Key ${i + 1} from HOME_POSE`, [k.x, k.y, k.z], HOME_POSE);
+}
+for (let i = 0; i < KEY_POSITIONS.length; i++) {
+  const k = KEY_POSITIONS[i];
+  runTest(`Key ${i + 1} approach from HOME_POSE`, [k.x, k.y, k.z + 0.04], HOME_POSE);
+}
+
 // Summary
 console.log('========================================');
 console.log('  Tests complete');
