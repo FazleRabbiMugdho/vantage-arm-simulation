@@ -6,7 +6,7 @@ import { motionController } from '@/lib/motion/MotionController';
 const PAD_SIZE = 160;
 const CENTER = PAD_SIZE / 2;
 const MAX_RADIUS = CENTER - 4;
-const SCALE = 0.0015; // Increased scale for more drag sensitivity/intensity
+const SCALE = 0.005; // Increased scale for debugging — makes arm movement more visible per drag distance
 const THROTTLE_MS = 40;
 
 export default function JoystickControl() {
@@ -15,7 +15,7 @@ export default function JoystickControl() {
   const lastEmit = useRef(0);
   const [active, setActive] = useState(false);
   const [knobPos, setKnobPos] = useState<{ x: number; y: number } | null>(null);
-  const [stepSize, setStepSize] = useState(0.025); // Default to 25mm for higher intensity
+  const [stepSize, setStepSize] = useState(0.050); // Default to 50mm for debugging — visible movement per click
 
   const emitJog = useCallback((dx: number, dy: number, dz: number) => {
     const now = Date.now();
@@ -166,7 +166,7 @@ export default function JoystickControl() {
           Jog Step Size
         </span>
         <div className="flex rounded bg-gray-900/50 p-0.5">
-          {[0.005, 0.010, 0.025, 0.050].map((val) => (
+          {[0.010, 0.025, 0.050, 0.100].map((val) => (
             <button
               key={val}
               onClick={() => setStepSize(val)}
