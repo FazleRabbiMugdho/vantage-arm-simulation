@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import URDFLoader from 'urdf-loader';
 import { useJointStore } from '@/lib/store/jointState';
+import { createKeyPanel } from '@/components/panel/KeyPanel';
 
 export default function RobotViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,6 +119,9 @@ export default function RobotViewer() {
           joint_6: 0,
           stylus_pitch: 0,
         });
+
+        // Render key panel
+        createKeyPanel(scene);
 
         setLoading(false);
       },
