@@ -169,7 +169,7 @@ export default function PinEntryControl() {
 
       {/* Step log */}
       {log.length > 0 && (
-        <div className="max-h-40 space-y-0.5 overflow-y-auto rounded border border-gray-700 bg-gray-900/50 p-2">
+        <div className="max-h-40 space-y-0.5 overflow-y-auto overscroll-contain rounded border border-gray-700 bg-gray-900/50 p-2">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Step Log</p>
           {log.map((s, i) => (
             <div key={i} className="flex items-center gap-2 text-[10px]">

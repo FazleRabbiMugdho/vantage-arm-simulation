@@ -37,8 +37,8 @@ export default function Home() {
         <div className="flex-1">
           <RobotViewer />
         </div>
-        <aside className="flex w-80 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800">
-          <div className="flex-1 overflow-y-auto">
+        <aside className="flex w-80 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800 overflow-y-auto overscroll-contain">
+          <div>
             <TelemetryPanel />
           </div>
           <div className="border-t border-gray-700 p-4">
