@@ -21,6 +21,46 @@ This file documents the agent configuration and conventions used when building t
 - After each prompt, run that step's verification checklist before committing.
 - If a checklist item fails, report the failure to the agent and ask it to fix that specific item — do not proceed to the next prompt with a known-broken step.
 
+### Branching strategy
+- **Create a new branch** for every prompt before starting work: `git checkout -b prompt-XX`
+- After the prompt's commit, merge back to `master`: `git checkout master && git merge prompt-XX`
+- Delete the branch locally after merge: `git branch -d prompt-XX`
+- Push master after each prompt: `git push`
+- This keeps each prompt's work isolated and makes `/undo` trivial (delete the branch).
+
+### Audit file requirement
+- After every prompt (both Plan and Build mode), create an audit file at:
+  `docs/audit-prompt-XX.md` where `XX` is the zero-padded prompt number (e.g. `04`, `05`).
+- Use this template:
+
+```md
+# Audit: Prompt XX — [Title]
+
+**Mode:** Plan / Build
+**Date:** YYYY-MM-DD
+**Branch:** prompt-XX
+**Commit:** `[commit message]` ([hash])
+
+## What was done
+[Summary of work — 3-5 bullet points]
+
+## Problems solved
+[Any bugs, build errors, or unexpected issues and their fixes]
+
+## Verification checklist
+- [ ] Item 1
+- [ ] Item 2
+
+## Files created / modified
+[List key files]
+
+## State after prompt
+[What's ready for the next prompt]
+```
+
+- If a prompt is purely Plan mode (no commit, like Prompt 0), omit the Commit line and note "Plan mode — no commit".
+- Commit the audit file in the same branch as the prompt's work, before merging to master.
+
 ### Key architectural rules (non-negotiable)
 1. Only the MotionController writes to joint state — no exceptions.
 2. All control adapters emit `MotionCommand` — nothing else.
