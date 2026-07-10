@@ -15,12 +15,14 @@ export interface JointState {
   loading: boolean;
   error: string | null;
   activityLog: LogEntry[];
+  activeKeyIndex: number | null;
   setJointAngles: (angles: number[]) => void;
   setEePosition: (pos: [number, number, number]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   addLogEntry: (entry: LogEntry) => void;
   clearLog: () => void;
+  setActiveKey: (index: number | null) => void;
 }
 
 export const useJointStore = create<JointState>((set) => ({
@@ -29,6 +31,7 @@ export const useJointStore = create<JointState>((set) => ({
   loading: true,
   error: null,
   activityLog: [],
+  activeKeyIndex: null,
   setJointAngles: (angles) => set({ jointAngles: angles }),
   setEePosition: (pos) => set({ eePosition: pos }),
   setLoading: (loading) => set({ loading }),
@@ -36,4 +39,5 @@ export const useJointStore = create<JointState>((set) => ({
   addLogEntry: (entry) =>
     set((state) => ({ activityLog: [...state.activityLog, entry] })),
   clearLog: () => set({ activityLog: [] }),
+  setActiveKey: (index) => set({ activeKeyIndex: index }),
 }));

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { motionController } from '@/lib/motion/MotionController';
 import { KEY_POSITIONS, APPROACH_OFFSET } from '@/lib/config/keyConfig';
+import { useJointStore } from '@/lib/store/jointState';
 
 type Phase = 'approach' | 'descend' | 'retract';
 type StepStatus = 'running' | 'accepted' | 'rejected';
@@ -115,10 +116,16 @@ export default function PinEntryControl() {
         console.error('[PinEntryControl] Descend rejected. Reason:', result.reason);
         break;
       }
+      useJointStore.getState().setActiveKey(keyIdx);
       await motionController.waitUntilIdle();
       if (abortRef.current) break;
 
+      // Dwell 0.7s at descend (EE stays on key, button stays green)
+      await new Promise((r) => setTimeout(r, 700));
+      if (abortRef.current) break;
+
       // Retract
+      useJointStore.getState().setActiveKey(null);
       setCurrentStep({ digit: i + 1, phase: 'retract' });
       console.log('[PinEntryControl] Sending moveTo retractPos (same as approach):', approachPos);
       result = motionController.execute(
@@ -137,6 +144,7 @@ export default function PinEntryControl() {
     }
 
     console.log('[PinEntryControl] PIN sequence execution completed');
+    useJointStore.getState().setActiveKey(null);
     setCurrentStep(null);
     setRunning(false);
   }, [pin, running, addStep]);
@@ -144,6 +152,7 @@ export default function PinEntryControl() {
   const stopSequence = useCallback(() => {
     abortRef.current = true;
     motionController.stopAnimation();
+    useJointStore.getState().setActiveKey(null);
     setCurrentStep(null);
     setRunning(false);
   }, []);

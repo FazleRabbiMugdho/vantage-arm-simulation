@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import URDFLoader from 'urdf-loader';
 import { useJointStore, HOME_POSE } from '@/lib/store/jointState';
-import { createKeyPanel } from '@/components/panel/KeyPanel';
+import { createKeyPanel, setKeyHighlight } from '@/components/panel/KeyPanel';
 
 export default function RobotViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,6 +19,12 @@ export default function RobotViewer() {
   const setEePosition = useJointStore((s) => s.setEePosition);
   const setLoading = useJointStore((s) => s.setLoading);
   const setError = useJointStore((s) => s.setError);
+  const activeKeyIndex = useJointStore((s) => s.activeKeyIndex);
+
+  // Highlight active PIN key in 3D scene
+  useEffect(() => {
+    setKeyHighlight(activeKeyIndex);
+  }, [activeKeyIndex]);
 
   useEffect(() => {
     const container = containerRef.current;
