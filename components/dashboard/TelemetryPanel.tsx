@@ -82,10 +82,7 @@ export default function TelemetryPanel() {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
-        Telemetry
-      </h2>
+    <div className="space-y-4">
 
       {/* Joint angles */}
       <section className="mb-4">
