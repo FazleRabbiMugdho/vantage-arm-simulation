@@ -12,11 +12,11 @@ module.exports = {
       },
       colors: {
         graphite: {
-          950: '#0b0d12',
-          900: '#0f1117',
-          800: '#151820',
-          700: '#1a1d26',
-          600: '#22262f',
+          950: '#0e111a', // Brighter, rich slate base
+          900: '#141824', // Main background
+          800: '#1c2132', // Panel background
+          700: '#252b41', // Card background / borders
+          600: '#313955', // Input fields / secondary active states
         },
       },
     },
