@@ -33,6 +33,16 @@ const VoiceControl = dynamic(
   { ssr: false }
 );
 
+const ActiveSourceBadge = dynamic(
+  () => import('@/components/dashboard/ActiveSourceBadge'),
+  { ssr: false }
+);
+
+const ActivityLogPanel = dynamic(
+  () => import('@/components/dashboard/ActivityLogPanel'),
+  { ssr: false }
+);
+
 function CollapseBtn({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
   return (
     <button
@@ -58,8 +68,9 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="flex-shrink-0 border-b border-gray-700 bg-gray-800 px-6 py-3">
+      <header className="flex-shrink-0 flex items-center justify-between border-b border-gray-700 bg-gray-800 px-6 py-3">
         <h1 className="text-xl font-semibold">Vantage Arm Simulation</h1>
+        <ActiveSourceBadge />
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className="min-w-0 flex-1">
@@ -120,6 +131,9 @@ export default function Home() {
               </div>
               <div className="border-t border-gray-700 p-4">
                 <JoystickControl />
+              </div>
+              <div className="border-t border-gray-700 p-4">
+                <ActivityLogPanel />
               </div>
             </div>
           )}
