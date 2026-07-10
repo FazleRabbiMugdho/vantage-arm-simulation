@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motionController } from '@/lib/motion/MotionController';
+import { useJointStore } from '@/lib/store/jointState';
 import { createSpeechRecognizer } from '@/lib/voice/speechRecognition';
 import { parseCommand } from '@/lib/voice/commandParser';
 import type { SpeechRecognizer, SpeechState } from '@/lib/voice/speechRecognition';
@@ -41,18 +42,115 @@ export default function VoiceControl() {
         console.log('[Voice] parsed:', parsed);
         setCurrentParse(parsed);
 
-        const entry: FeedbackEntry = {
-          id: idRef.current++,
-          transcript: text,
-          description: parsed.description,
-          recognized: parsed.recognized,
-          timestamp: Date.now(),
-        };
-        setEntries((prev) => [...prev, entry]);
+        const entryId = idRef.current++;
 
         if (parsed.recognized && parsed.command) {
+          const entry: FeedbackEntry = {
+            id: entryId,
+            transcript: text,
+            description: parsed.description,
+            recognized: true,
+            timestamp: Date.now(),
+          };
+          setEntries((prev) => [...prev, entry]);
           console.log('[Voice] executing:', parsed.command);
           motionController.execute(parsed.command, 'voice');
+        } else {
+          // Asynchronous Agentic AI fallback
+          console.log('[Voice] Unrecognized deterministically. Trying Agentic AI fallback for:', text);
+          
+          const entry: FeedbackEntry = {
+            id: entryId,
+            transcript: text,
+            description: 'AI is interpreting command…',
+            recognized: false,
+            timestamp: Date.now(),
+          };
+          setEntries((prev) => [...prev, entry]);
+
+          const store = useJointStore.getState();
+          const context = {
+            eePosition: store.eePosition,
+            jointAngles: store.jointAngles,
+          };
+
+          fetch('/api/agentic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, context }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.kind === 'command' && data.command) {
+                console.log('[Voice AI Fallback] executing:', data.command);
+                motionController.execute(data.command, 'voice');
+                
+                // Update feedback entry and current parse status
+                setEntries((prev) =>
+                  prev.map((e) =>
+                    e.id === entryId
+                      ? {
+                          ...e,
+                          description: `[AI Corrected] ${data.explanation || 'Command executed'}`,
+                          recognized: true,
+                        }
+                      : e
+                  )
+                );
+                setCurrentParse({
+                  recognized: true,
+                  description: `[AI Corrected] ${data.explanation || 'Command executed'}`,
+                  command: data.command,
+                });
+              } else if (data.kind === 'question') {
+                setEntries((prev) =>
+                  prev.map((e) =>
+                    e.id === entryId
+                      ? {
+                          ...e,
+                          description: `AI Clarification: "${data.question}"`,
+                          recognized: false,
+                        }
+                      : e
+                  )
+                );
+                setCurrentParse({
+                  recognized: false,
+                  description: `AI Clarification: "${data.question}"`,
+                } as any);
+              } else {
+                const errMsg = data.error || 'AI could not resolve command';
+                setEntries((prev) =>
+                  prev.map((e) =>
+                    e.id === entryId
+                      ? {
+                          ...e,
+                          description: `AI Error: ${errMsg}`,
+                          recognized: false,
+                        }
+                      : e
+                  )
+                );
+                setCurrentParse({
+                  recognized: false,
+                  description: `AI Error: ${errMsg}`,
+                } as any);
+              }
+            })
+            .catch((err) => {
+              console.error('[Voice AI Fallback] Request failed:', err);
+              setEntries((prev) =>
+                prev.map((e) =>
+                  e.id === entryId
+                    ? {
+                        ...e,
+                        description: 'AI service request failed',
+                        recognized: false,
+                      }
+                    : e
+                )
+              );
+            });
         }
       },
       onStateChange: (newState: SpeechState) => {
