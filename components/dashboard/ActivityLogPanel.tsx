@@ -59,9 +59,9 @@ export default function ActivityLogPanel() {
             <div
               key={activityLog.length - 1 - i}
               className={`rounded px-2 py-1 text-[10px] ${
-                entry.result.accepted
-                  ? 'border-l-2 border-l-green-500/50 bg-green-500/5'
-                  : 'border-l-2 border-l-red-500/50 bg-red-500/5'
+                  entry.result.accepted
+                    ? 'border-l-2 border-l-green-500/60 bg-green-500/10'
+                    : 'border-l-2 border-l-red-500/50 bg-red-500/5'
               }`}
             >
               <div className="flex items-center gap-1.5">
