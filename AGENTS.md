@@ -22,38 +22,39 @@ This file documents the agent configuration and conventions used when building t
 - If a checklist item fails, report the failure to the agent and ask it to fix that specific item — do not proceed to the next prompt with a known-broken step.
 
 ### Branching & naming convention
-- **Branch names**: use professional kebab-case names, not `prompt-XX`.
-  - Examples: `key-panel`, `ik-solver`, `voice-control`, `deploy-readiness`.
-- **Audit files**: `docs/audit-<name>.md` matching the branch name.
-- **Create a new branch** for every prompt before starting work: `git checkout -b <name>`
-- **Push the branch** to GitHub: `git push -u origin <name>`
+- **Branch names**: `<prefix>/<work-name>` in kebab-case.
+  - Prefixes: `feat/` (features), `fix/` (bug fixes), `docs/` (documentation), `chore/` (setup/tooling), `style/` (visual design).
+  - Work name describes what the branch does (e.g. `feat/key-panel`, `feat/ik-solver`).
+- **Audit files**: `docs/audit-<work-name>.md` matching the branch work-name.
+- **Create a new branch** for every prompt before starting work: `git checkout -b <prefix>/<work-name>`
+- **Push the branch** to GitHub: `git push -u origin <prefix>/<work-name>`
 - **Create a Pull Request** on GitHub from the branch into `master` — merge via PR, not direct merge.
 - **Keep all branches** — never delete them locally or remotely. This preserves full history per prompt.
 - After the PR is merged, switch back to master and pull: `git checkout master && git pull`
 - This keeps each prompt's work isolated, enables PR review, and gives a clean `/undo` path.
 
-### Professional branch name map
+### Branch name map
 
-| Prompt | Name |
-|--------|------|
-| 0 | `context-primer` |
-| 1 | `architecture-plan` |
-| 2 | `scaffold` |
-| 3 | `urdf-viewer` |
-| 4 | `key-panel` |
-| 5 | `telemetry-dashboard` |
-| 6 | `ik-solver` |
-| 7 | `motion-controller` |
-| 8 | `joystick-control` |
-| 9 | `keyboard-control` |
-| 10 | `autonomous-pin-entry` |
-| 11 | `voice-control` |
-| 12 | `unify-dashboard` |
-| 13 | `visual-design` |
-| 14 | `agentic-bonus` |
-| 15 | `deploy-readiness` |
-| 16 | `judge-documentation` |
-| 17 | `electrical-schematic` |
+| Prompt | Branch |
+|--------|--------|
+| 0 | `docs/context-primer` |
+| 1 | `docs/architecture-plan` |
+| 2 | `chore/scaffold` |
+| 3 | `feat/urdf-viewer` |
+| 4 | `feat/key-panel` |
+| 5 | `feat/telemetry-dashboard` |
+| 6 | `feat/ik-solver` |
+| 7 | `feat/motion-controller` |
+| 8 | `feat/joystick-control` |
+| 9 | `feat/keyboard-control` |
+| 10 | `feat/autonomous-pin-entry` |
+| 11 | `feat/voice-control` |
+| 12 | `feat/unify-dashboard` |
+| 13 | `style/visual-design` |
+| 14 | `feat/agentic-bonus` |
+| 15 | `chore/deploy-readiness` |
+| 16 | `docs/judge-documentation` |
+| 17 | `docs/electrical-schematic` |
 
 ### Audit file requirement
 - After every prompt (both Plan and Build mode), create an audit file at:

@@ -2,7 +2,7 @@
 
 **Mode:** Build
 **Date:** 2026-07-10
-**Branch:** prompt-04
+**Branch:** feat/key-panel
 **Commit:** `feat: render 6-key test panel from key_config.json`
 
 ## What was done
