@@ -22,5 +22,4 @@ export interface LogEntry {
   source: AdapterName;
   command: MotionCommand;
   result: CommandResult;
-  description?: string;
 }

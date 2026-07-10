@@ -74,8 +74,8 @@ export default function ActivityLogPanel() {
                 <span className="shrink-0 font-medium text-amber-500/80">
                   {SOURCE_LABELS[entry.source] || entry.source}
                 </span>
-                <span className="min-w-0 whitespace-nowrap text-gray-400">
-                  {entry.description ?? commandSummary(entry.command)}
+                <span className="truncate text-gray-400">
+                  {commandSummary(entry.command)}
                 </span>
                 <span className={`shrink-0 font-bold ${entry.result.accepted ? 'text-green-500' : 'text-red-400'}`}>
                   {entry.result.accepted ? '✓' : '✗'}

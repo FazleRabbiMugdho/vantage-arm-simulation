@@ -11,7 +11,7 @@ export class MotionController {
   private pendingAngleUpdate: number[] | null = null;
   private _resolveIdle: (() => void) | null = null;
 
-  execute(command: MotionCommand, source: AdapterName, description?: string): CommandResult {
+  execute(command: MotionCommand, source: AdapterName): CommandResult {
     const result = this.resolveAndValidate(command);
 
     const logEntry: LogEntry = {
@@ -19,7 +19,6 @@ export class MotionController {
       source,
       command,
       result,
-      description,
     };
 
     const store = useJointStore.getState();
