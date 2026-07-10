@@ -32,7 +32,7 @@ export default function TelemetryPanel() {
   const eePosition = useJointStore((s) => s.eePosition);
 
   return (
-    <aside className="flex w-72 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800 p-4">
+    <div className="p-4">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
         Telemetry
       </h2>
@@ -111,6 +111,6 @@ export default function TelemetryPanel() {
           </span>
         </div>
       </section>
-    </aside>
+    </div>
   );
 }
