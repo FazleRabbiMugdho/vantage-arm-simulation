@@ -24,7 +24,14 @@ runSequence() — for each digit:
          MotionController.execute({ type: 'moveTo', target }, 'autonomous')
                  │
                  ▼
-         IK solver (solveIK) → animator → joint store → 3D viewer
+          IK solver (solveIK) → animator → joint store → 3D viewer
+                  │
+                  ▼
+          useJointStore.addLogEntry()  →  activityLog[]
+                  │
+                  ▼
+          ActivityLogPanel (shared UI in telemetry sidebar)
+          ActiveSourceBadge (header shows "PIN Entry" in amber)
 ```
 
 ---
@@ -275,6 +282,54 @@ The store is updated:
 
 ---
 
+## Unified Dashboard (Prompt 12 Integration)
+
+All control adapters (joystick, keyboard, voice, autonomous/PIN) are integrated into a single page layout with a shared activity log.
+
+### Layout
+
+```
+┌───────────────────────┬──────────────────┬──────────────────────┐
+│ Vantage Sim  [Badge]  │                  │                      │
+├───────────────────────┤ Controls ▲       │ Telemetry ▲          │
+│                       ├──────────────────┼──────────────────────┤
+│     3D Viewer         │ PIN Entry        │ Telemetry Panel      │
+│                       │ Voice Control    │----------------------│
+│                       │ Keyboard         │ JoystickControl      │
+│                       │                  │----------------------│
+│                       │                  │ Activity Log [Clear] │
+└───────────────────────┴──────────────────┴──────────────────────┘
+```
+
+### Shared Activity Log
+
+**File:** `components/dashboard/ActivityLogPanel.tsx`
+
+- Reads directly from `useJointStore.activityLog` — the **single** log array populated only by `MotionController.execute()`
+- Each PIN entry step (approach/descend/retract) generates a `LogEntry` with `source: 'autonomous'`
+- Displays: timestamp, color-coded source label, command summary, ✓/✗ status, rejection reason
+- "Clear" button empties the log
+
+### Active Source Badge
+
+**File:** `components/dashboard/ActiveSourceBadge.tsx`
+
+- Located in the top-right of the page header
+- Reads the last entry from `activityLog` and shows its source
+- Color-coded per source:
+  - **Joystick** → blue
+  - **Keyboard** → purple
+  - **Voice** → green
+  - **PIN Entry (autonomous)** → amber
+  - **Agentic** → red
+- Shows "No activity" when the log is empty
+
+### Single Push Point
+
+Verified: `addLogEntry` is called **only** from `MotionController.ts:25`. No control adapter pushes directly to the log. This is the architectural proof that all five inputs funnel through one pipeline.
+
+---
+
 ## Sequence diagram (one digit)
 
 ```
@@ -345,6 +400,8 @@ User          PinEntryControl        MotionController      IK Solver     Joint S
 | `lib/ik/matrix.ts` | 4×4 matrix math utilities |
 | `lib/store/jointState.ts` | Zustand store for joint angles + activity log |
 | `lib/config/jointLimits.ts` | Per-joint angle bounds with degree conversions |
-| `app/page.tsx` | Mounts PinEntryControl in controls panel |
+| `app/page.tsx` | Mounts PinEntryControl in controls panel, ActivityLogPanel + ActiveSourceBadge |
+| `components/dashboard/ActivityLogPanel.tsx` | Shared activity log panel |
+| `components/dashboard/ActiveSourceBadge.tsx` | Active source indicator in header |
 | `components/dashboard/TelemetryPanel.tsx` | Displays joint angles + end-effector XYZ |
 | `components/viewer/RobotViewer.tsx` | Three.js renderer, updates eePosition each frame |

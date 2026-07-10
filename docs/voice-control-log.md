@@ -20,8 +20,17 @@ Voice control lets the user command the robotic arm through spoken phrases. It u
                             ▼
                    MotionController.execute(cmd, 'voice')
                             │
-                            ▼
-                   IK solver → animate → joint store
+                ┌───────────┴───────────┐
+                │                       │
+                ▼                       ▼
+         IK solver → animate    useJointStore.addLogEntry()
+                │                       │
+                ▼                       ▼
+         jointAngles[]             activityLog[]
+                │                       │
+                ▼                       ▼
+         3D viewer (RobotViewer)   ActivityLogPanel (UI)
+                                   ActiveSourceBadge (header)
 ```
 
 ---
@@ -235,9 +244,10 @@ motionController.execute(command, 'voice')
 
 The `MotionController`:
 1. Validates the command (`resolveAndValidate`)
-2. Creates a `LogEntry` with `source: 'voice'`
-3. Stores the log entry in `useJointStore.activityLog`
-4. If accepted, runs `animateTo(newAngles)` which interpolates joint angles over 200ms
+2. Creates a `LogEntry` with `source: 'voice'` and stores it in `useJointStore.activityLog` (single shared log, one push point for all adapters)
+3. The header `ActiveSourceBadge` reads from the same log and displays "Voice" in green when voice issues the last command
+4. The shared `ActivityLogPanel` in the telemetry sidebar renders all log entries with color-coded sources
+5. If accepted, runs `animateTo(newAngles)` which interpolates joint angles over 200ms
 
 ### Command type routing in MotionController
 
@@ -298,7 +308,10 @@ The `MotionController`:
 | `components/controls/VoiceControl.tsx` | Mic button, state management, UI |
 | `lib/motion/MotionController.ts` | Command validation, IK solving, animation |
 | `lib/motion/types.ts` | `MotionCommand` type definitions |
-| `app/page.tsx` | Mounts VoiceControl in controls panel |
+| `app/page.tsx` | Mounts VoiceControl in controls panel, ActivityLogPanel + ActiveSourceBadge |
+| `components/dashboard/ActivityLogPanel.tsx` | Shared activity log (reads from `useJointStore`) |
+| `components/dashboard/ActiveSourceBadge.tsx` | Header badge showing last active source |
+| `components/voice/VoiceFeedbackPanel.tsx` | Reusable transcript/feedback display |
 
 ---
 
