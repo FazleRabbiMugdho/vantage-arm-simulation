@@ -17,6 +17,11 @@ const JoystickControl = dynamic(
   { ssr: false }
 );
 
+const KeyboardControl = dynamic(
+  () => import('@/components/controls/KeyboardControl'),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
@@ -36,6 +41,9 @@ export default function Home() {
               Joystick
             </h2>
             <JoystickControl />
+          </div>
+          <div className="border-t border-gray-700 p-4">
+            <KeyboardControl />
           </div>
         </aside>
       </div>

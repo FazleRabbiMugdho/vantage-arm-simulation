@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { useJointStore } from '@/lib/store/jointState';
 import { JOINT_LIMITS, JOINT_NAMES, WARNING_THRESHOLD_DEG } from '@/lib/config/jointLimits';
 
@@ -27,9 +28,58 @@ function limitDotColor(level: 'safe' | 'warn' | 'critical'): string {
   }
 }
 
+const STEP_DEG = 1;
+const STEP_RAD = STEP_DEG * (Math.PI / 180);
+
+function HoldButton({ label, onStep, className }: {
+  label: string;
+  onStep: () => void;
+  className?: string;
+}) {
+  const onStepRef = useRef(onStep);
+  onStepRef.current = onStep;
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  return (
+    <button
+      onPointerDown={() => {
+        onStepRef.current();
+        if (intervalRef.current !== null) clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(() => onStepRef.current(), 100);
+      }}
+      onPointerUp={() => {
+        if (intervalRef.current !== null) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      }}
+      onPointerLeave={() => {
+        if (intervalRef.current !== null) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      }}
+      className={className}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function TelemetryPanel() {
   const jointAngles = useJointStore((s) => s.jointAngles);
+  const setJointAngles = useJointStore((s) => s.setJointAngles);
   const eePosition = useJointStore((s) => s.eePosition);
+
+  function adjustJoint(index: number, deltaRad: number) {
+    const name = JOINT_NAMES[index];
+    const limit = JOINT_LIMITS[name];
+    const newVal = jointAngles[index] + deltaRad;
+    const clamped = Math.max(limit.lower, Math.min(limit.upper, newVal));
+    const updated = [...jointAngles];
+    updated[index] = clamped;
+    setJointAngles(updated);
+  }
 
   return (
     <div className="p-4">
@@ -57,9 +107,19 @@ export default function TelemetryPanel() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <HoldButton
+                    onStep={() => adjustJoint(i, -STEP_RAD)}
+                    label="−"
+                    className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-xs text-gray-300 hover:bg-gray-600"
+                  />
                   <span className="font-mono tabular-nums text-gray-100">
                     {angleDeg.toFixed(1)}°
                   </span>
+                  <HoldButton
+                    onStep={() => adjustJoint(i, STEP_RAD)}
+                    label="+"
+                    className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-xs text-gray-300 hover:bg-gray-600"
+                  />
                   <span className="text-[10px] text-gray-500">
                     [{limit.lowerDeg}..{limit.upperDeg}]
                   </span>
