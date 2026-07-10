@@ -57,20 +57,24 @@ export default function Home() {
         <h1 className="text-xl font-semibold">Vantage Arm Simulation</h1>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <RobotViewer />
         </div>
 
         {/* Controls panel */}
         <aside
-          className={`flex flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800 overflow-y-auto overscroll-contain transition-all duration-200 ${
-            controlsOpen ? 'w-72' : 'w-0 overflow-hidden border-l-0'
+          className={`flex flex-col border-l border-gray-700 bg-gray-800 transition-all duration-200 ${
+            controlsOpen
+              ? 'w-72 overflow-y-auto overscroll-contain'
+              : 'w-8 overflow-hidden'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Controls
-            </span>
+          <div className={`flex items-center justify-between border-b border-gray-700 ${controlsOpen ? 'px-4' : 'px-1.5'} py-2`}>
+            {controlsOpen && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Controls
+              </span>
+            )}
             <CollapseBtn collapsed={!controlsOpen} onClick={() => setControlsOpen(!controlsOpen)} />
           </div>
           {controlsOpen && (
@@ -90,14 +94,18 @@ export default function Home() {
 
         {/* Telemetry panel */}
         <aside
-          className={`flex flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800 overflow-y-auto overscroll-contain transition-all duration-200 ${
-            telemetryOpen ? 'w-72' : 'w-0 overflow-hidden border-l-0'
+          className={`flex flex-col border-l border-gray-700 bg-gray-800 transition-all duration-200 ${
+            telemetryOpen
+              ? 'w-72 overflow-y-auto overscroll-contain'
+              : 'w-8 overflow-hidden'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Telemetry
-            </span>
+          <div className={`flex items-center justify-between border-b border-gray-700 ${telemetryOpen ? 'px-4' : 'px-1.5'} py-2`}>
+            {telemetryOpen && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Telemetry
+              </span>
+            )}
             <CollapseBtn collapsed={!telemetryOpen} onClick={() => setTelemetryOpen(!telemetryOpen)} />
           </div>
           {telemetryOpen && (
