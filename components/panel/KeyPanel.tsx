@@ -5,8 +5,9 @@ import * as THREE from 'three';
 import { KEY_POSITIONS, APPROACH_OFFSET } from '@/lib/config/keyConfig';
 
 const KEY_SIZE = 0.025;
-const ROW1_COLOR = 0x44aa88;
-const ROW2_COLOR = 0x88aa44;
+const HIGHLIGHT_COLOR = 0x00ff44;
+
+const keyMeshMap = new Map<number, THREE.Mesh>();
 
 function makeTextSprite(text: string): THREE.Sprite {
   const canvas = document.createElement('canvas');
@@ -36,11 +37,10 @@ export function createKeyPanel(parent: THREE.Object3D): THREE.Group {
   group.name = 'key-panel';
 
   KEY_POSITIONS.forEach((pos, i) => {
-    const color = i < 3 ? ROW1_COLOR : ROW2_COLOR;
     const geo = new THREE.BoxGeometry(KEY_SIZE, KEY_SIZE, KEY_SIZE);
     const mat = new THREE.MeshStandardMaterial({
-      color,
-      roughness: 0.4,
+      color: 0x666666,
+      roughness: 0.6,
       metalness: 0.1,
     });
     const mesh = new THREE.Mesh(geo, mat);
@@ -49,6 +49,8 @@ export function createKeyPanel(parent: THREE.Object3D): THREE.Group {
     mesh.name = `key-${i + 1}`;
     group.add(mesh);
 
+    keyMeshMap.set(i, mesh);
+
     const sprite = makeTextSprite(`${i + 1}`);
     sprite.position.set(pos.x, pos.y, pos.z + KEY_SIZE + 0.01);
     group.add(sprite);
@@ -56,4 +58,19 @@ export function createKeyPanel(parent: THREE.Object3D): THREE.Group {
 
   parent.add(group);
   return group;
+}
+
+export function setKeyHighlight(keyIndex: number | null): void {
+  for (const [idx, mesh] of keyMeshMap) {
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    if (idx === keyIndex) {
+      mat.color.setHex(HIGHLIGHT_COLOR);
+      mat.emissive?.setHex(HIGHLIGHT_COLOR);
+      mat.emissiveIntensity = 0.3;
+    } else {
+      mat.color.setHex(0x666666);
+      mat.emissive?.setHex(0x000000);
+      mat.emissiveIntensity = 0;
+    }
+  }
 }
