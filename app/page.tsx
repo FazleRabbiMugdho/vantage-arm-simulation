@@ -7,14 +7,22 @@ const RobotViewer = dynamic(
   { ssr: false }
 );
 
+const TelemetryPanel = dynamic(
+  () => import('@/components/dashboard/TelemetryPanel'),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="border-b border-gray-700 bg-gray-800 px-6 py-3">
+      <header className="flex-shrink-0 border-b border-gray-700 bg-gray-800 px-6 py-3">
         <h1 className="text-xl font-semibold">Vantage Arm Simulation</h1>
       </header>
-      <div className="flex-1">
-        <RobotViewer />
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1">
+          <RobotViewer />
+        </div>
+        <TelemetryPanel />
       </div>
     </main>
   );
