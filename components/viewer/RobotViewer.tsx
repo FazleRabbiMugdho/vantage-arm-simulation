@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import URDFLoader from 'urdf-loader';
-import { useJointStore } from '@/lib/store/jointState';
+import { useJointStore, HOME_POSE } from '@/lib/store/jointState';
 import { createKeyPanel } from '@/components/panel/KeyPanel';
 
 export default function RobotViewer() {
@@ -81,6 +81,79 @@ export default function RobotViewer() {
         robotRef.current = robot;
         scene.add(robot);
 
+        // Rotate the robot to stand upright (Z-up in URDF maps to Y-up in Three.js)
+        robot.rotation.x = -Math.PI / 2;
+
+        // Style the robot links (metallic dark grey / silver)
+        robot.traverse((child: any) => {
+          if (child.isMesh) {
+            const name = child.name || '';
+            const parentName = child.parent ? child.parent.name : '';
+            
+            let color = 0x555555; // default link color (medium dark grey)
+            let metalness = 0.8;
+            let roughness = 0.3;
+
+            if (parentName.includes('stylus_tip')) {
+              color = 0xff0000; // red tip
+              metalness = 0.1;
+              roughness = 0.5;
+            } else if (parentName.includes('stylus')) {
+              color = 0xcccccc; // silver stylus
+              metalness = 0.9;
+              roughness = 0.2;
+            } else if (parentName.includes('base_link')) {
+              color = 0x2d2d2d; // dark charcoal base
+              metalness = 0.6;
+              roughness = 0.4;
+            }
+
+            child.material = new THREE.MeshStandardMaterial({
+              color,
+              metalness,
+              roughness,
+            });
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        // Add gold joint markers to make joints look realistic and match the problem statement
+        const goldMaterial = new THREE.MeshStandardMaterial({
+          color: 0xd4af37, // Gold color
+          metalness: 0.9,
+          roughness: 0.15,
+        });
+
+        const jointsConfig = [
+          { name: 'joint_1', type: 'cylinder', radius: 0.035, length: 0.04, axis: 'z' },
+          { name: 'joint_2', type: 'cylinder', radius: 0.03, length: 0.06, axis: 'y' },
+          { name: 'joint_3', type: 'cylinder', radius: 0.03, length: 0.06, axis: 'y' },
+          { name: 'joint_4', type: 'sphere', radius: 0.028 },
+          { name: 'joint_5', type: 'cylinder', radius: 0.022, length: 0.04, axis: 'y' },
+          { name: 'joint_6', type: 'sphere', radius: 0.02 },
+          { name: 'stylus_pitch', type: 'cylinder', radius: 0.016, length: 0.03, axis: 'y' },
+        ];
+
+        jointsConfig.forEach((cfg) => {
+          const joint = robot.joints[cfg.name];
+          if (joint) {
+            let geom;
+            if (cfg.type === 'cylinder') {
+              geom = new THREE.CylinderGeometry(cfg.radius, cfg.radius, cfg.length, 16);
+              if (cfg.axis === 'z') {
+                geom.rotateX(Math.PI / 2);
+              }
+            } else {
+              geom = new THREE.SphereGeometry(cfg.radius, 16, 16);
+            }
+            const mesh = new THREE.Mesh(geom, goldMaterial);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            joint.add(mesh);
+          }
+        });
+
         // Log all actuated joints
         const jointNames = Object.keys(robot.joints).sort();
         const actuatedJoints = jointNames.filter(
@@ -109,19 +182,19 @@ export default function RobotViewer() {
           );
         }
 
-        // Set initial angles (all zeros)
+        // Set initial angles (home pose — bent, away from singularity)
         robot.setJointValues({
-          joint_1: 0,
-          joint_2: 0,
-          joint_3: 0,
-          joint_4: 0,
-          joint_5: 0,
-          joint_6: 0,
-          stylus_pitch: 0,
+          joint_1: HOME_POSE[0],
+          joint_2: HOME_POSE[1],
+          joint_3: HOME_POSE[2],
+          joint_4: HOME_POSE[3],
+          joint_5: HOME_POSE[4],
+          joint_6: HOME_POSE[5],
+          stylus_pitch: HOME_POSE[6],
         });
 
-        // Render key panel
-        createKeyPanel(scene);
+        // Render key panel as a child of the robot so it's oriented relative to base_link
+        createKeyPanel(robot);
 
         setLoading(false);
       },
@@ -162,15 +235,16 @@ export default function RobotViewer() {
           stylus_pitch: state.jointAngles[6],
         });
 
-        // Compute world position of stylus_tip
+        // Compute local position of stylus_tip relative to robot base_link
         const tip = robot.getObjectByName('stylus_tip');
         if (tip) {
-          const worldPos = new THREE.Vector3();
-          tip.getWorldPosition(worldPos);
+          const localPos = new THREE.Vector3();
+          tip.getWorldPosition(localPos);
+          robot.worldToLocal(localPos);
           useJointStore.getState().setEePosition([
-            Math.round(worldPos.x * 1000) / 1000,
-            Math.round(worldPos.y * 1000) / 1000,
-            Math.round(worldPos.z * 1000) / 1000,
+            Math.round(localPos.x * 1000) / 1000,
+            Math.round(localPos.y * 1000) / 1000,
+            Math.round(localPos.z * 1000) / 1000,
           ]);
         }
       }
