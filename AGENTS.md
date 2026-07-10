@@ -27,7 +27,7 @@ This file documents the agent configuration and conventions used when building t
   - Work name describes what the branch does (e.g. `feat/key-panel`, `feat/ik-solver`).
 - **Audit files**: `docs/audit-<work-name>.md` matching the branch work-name.
 - **Create a new branch** for every prompt before starting work: `git checkout -b <prefix>/<work-name>`
-- **Push the branch** to GitHub: `git push -u origin <prefix>/<work-name>`
+- **Push the branch** to GitHub: Do NOT push automatically. Only push when the user explicitly requests a push.
 - **Create a Pull Request** on GitHub from the branch into `master` — merge via PR, not direct merge.
 - **Keep all branches** — never delete them locally or remotely. This preserves full history per prompt.
 - After the PR is merged, switch back to master and pull: `git checkout master && git pull`
