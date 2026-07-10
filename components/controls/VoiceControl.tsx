@@ -53,8 +53,16 @@ export default function VoiceControl() {
             timestamp: Date.now(),
           };
           setEntries((prev) => [...prev, entry]);
-          console.log('[Voice] executing:', parsed.command);
-          motionController.execute(parsed.command, 'voice');
+
+          const runCommands = async () => {
+            const cmds = parsed.commands || [parsed.command!];
+            for (const cmd of cmds) {
+              console.log('[Voice] executing part:', cmd);
+              motionController.execute(cmd, 'voice');
+              await motionController.waitUntilIdle();
+            }
+          };
+          runCommands();
         } else {
           // Asynchronous Agentic AI fallback
           console.log('[Voice] Unrecognized deterministically. Trying Agentic AI fallback for:', text);

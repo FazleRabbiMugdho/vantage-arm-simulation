@@ -51,6 +51,8 @@ export default function RobotViewer() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -62,17 +64,25 @@ export default function RobotViewer() {
     controlsRef.current = controls;
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    dirLight.position.set(2, 4, 3);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    dirLight.position.set(3, 6, 4);
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.mapSize.width = 2048; // Higher shadow resolution
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x8888ff, 0.4);
-    fillLight.position.set(-2, 1, -2);
+
+    const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.7); // Subtle blue fill from opposite side
+    fillLight.position.set(-3, 2, -3);
     scene.add(fillLight);
+
+    // Warm specular spotlight to highlight metallic curves
+    const spotlight = new THREE.SpotLight(0xfff7ed, 1.5, 12, Math.PI / 4, 0.6, 1.2);
+    spotlight.position.set(2, 5, 2);
+    scene.add(spotlight);
 
     // Grid
     const grid = new THREE.GridHelper(2, 20, 0x8b6914, 0x2a2520);
@@ -92,28 +102,28 @@ export default function RobotViewer() {
         // Rotate the robot to stand upright (Z-up in URDF maps to Y-up in Three.js)
         robot.rotation.x = -Math.PI / 2;
 
-        // Style the robot links (white arm, silver stylus, red tip)
+        // Style the robot links (Space-gray titanium, chrome stylus, ruby red tip)
         robot.traverse((child: any) => {
           if (child.isMesh) {
             const name = child.name || '';
             const parentName = child.parent ? child.parent.name : '';
 
-            let color = 0xeeeeee; // white arm links
-            let metalness = 0.3;
-            let roughness = 0.4;
+            let color = 0xd1d5db; // Brushed aluminum (light silver-gray) links
+            let metalness = 0.85;
+            let roughness = 0.18;
 
             if (parentName.includes('stylus_tip')) {
-              color = 0xff0000; // red tip
-              metalness = 0.1;
-              roughness = 0.5;
+              color = 0xef4444; // Bright ruby red tip
+              metalness = 0.2;
+              roughness = 0.25;
             } else if (parentName.includes('stylus')) {
-              color = 0xcccccc; // silver stylus
+              color = 0xf8fafc; // Chrome/stainless steel stylus
+              metalness = 0.95;
+              roughness = 0.05;
+            } else if (parentName.includes('base_link')) {
+              color = 0x9ca3af; // Lighter brushed steel base
               metalness = 0.9;
               roughness = 0.2;
-            } else if (parentName.includes('base_link')) {
-              color = 0xd0d0d0; // light grey base
-              metalness = 0.4;
-              roughness = 0.3;
             }
 
             child.material = new THREE.MeshStandardMaterial({
@@ -126,13 +136,13 @@ export default function RobotViewer() {
           }
         });
 
-        // Yellow joint markers
+        // Anodized gold/amber joint markers
         const jointMat = new THREE.MeshStandardMaterial({
-          color: 0xffee00,
-          emissive: 0x442200,
-          emissiveIntensity: 0.15,
-          metalness: 0.6,
-          roughness: 0.3,
+          color: 0xf59e0b,
+          emissive: 0x451a03,
+          emissiveIntensity: 0.1,
+          metalness: 0.9,
+          roughness: 0.12,
         });
 
         const jointsConfig = [

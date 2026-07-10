@@ -4,6 +4,7 @@ export interface ParsedCommand {
   recognized: boolean;
   description: string;
   command: MotionCommand | null;
+  commands?: MotionCommand[];
 }
 
 const JOINT_COUNT = 7;
@@ -23,7 +24,7 @@ const DIRECTION_MAP: Record<string, [number, number, number]> = {
   back:    [-JOG_STEP, 0, 0],
 };
 
-export function parseCommand(text: string): ParsedCommand {
+function parseSingleCommand(text: string): ParsedCommand {
   const lower = text.toLowerCase().trim();
 
   // --- Press key: "press key N", "press N", "hit key N", "go to key N", "type N" ---
@@ -110,4 +111,42 @@ export function parseCommand(text: string): ParsedCommand {
     description: 'Command not recognized',
     command: null,
   };
+}
+
+export function parseCommand(text: string): ParsedCommand {
+  const clean = text.trim();
+  if (!clean) {
+    return { recognized: false, description: 'Empty command', command: null };
+  }
+
+  // Split by conjunctions: "and then", "then", "and", or comma
+  const parts = clean.split(/\s+(?:and\s+then|then|and)\s+|,\s*/i);
+
+  if (parts.length > 1) {
+    const parsedParts: ParsedCommand[] = [];
+    let allRecognized = true;
+
+    for (const part of parts) {
+      if (!part.trim()) continue;
+      const parsed = parseSingleCommand(part.trim());
+      if (!parsed.recognized) {
+        allRecognized = false;
+        break;
+      }
+      parsedParts.push(parsed);
+    }
+
+    if (allRecognized && parsedParts.length > 0) {
+      const commands = parsedParts.map((p) => p.command).filter((c): c is MotionCommand => c !== null);
+      const descriptions = parsedParts.map((p) => p.description).join(' ➔ ');
+      return {
+        recognized: true,
+        description: descriptions,
+        command: commands[0],
+        commands,
+      };
+    }
+  }
+
+  return parseSingleCommand(clean);
 }

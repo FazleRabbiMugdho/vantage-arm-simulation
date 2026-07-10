@@ -63,14 +63,6 @@ const TargetIcon = () => (
   </svg>
 );
 
-const JoystickIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="3" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v5M10 20h4" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
 const KeyboardIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
     <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -155,12 +147,35 @@ export default function Home() {
         {/* 3D Viewer — occupies remaining space, highly dominant */}
         <div className="relative min-w-0 flex-1 bg-graphite-950">
           <RobotViewer />
+
+          {/* Overlay Floating Joystick at the Left Bottom side */}
+          <div
+            className={`absolute bottom-6 left-6 z-10 w-[260px] rounded-xl border bg-graphite-800/90 p-4 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+              activeSource === 'joystick'
+                ? 'border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                : 'border-graphite-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-3 pb-1.5 border-b border-graphite-700/40">
+              <span className="text-amber-500">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v5M10 20h4" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <span className="text-[10px] font-semibold text-gray-200 tracking-wide uppercase">
+                Joystick Control
+              </span>
+            </div>
+            <JoystickControl />
+          </div>
         </div>
 
         {/* Collapsible Feature Cards Panel */}
         <aside className="w-[320px] flex-shrink-0 border-l border-gray-700/20 bg-graphite-800 flex flex-col min-h-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.02)]">
           <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
-            {/* 1. Target Position (Collapsed by default on landing) */}
+            {/* 1. Target Position */}
             <CollapsibleFeatureCard
               id="target-position"
               icon={<TargetIcon />}
@@ -173,20 +188,7 @@ export default function Home() {
               <TargetBoxControl />
             </CollapsibleFeatureCard>
 
-            {/* 2. Joystick (Collapsed by default on landing) */}
-            <CollapsibleFeatureCard
-              id="joystick"
-              icon={<JoystickIcon />}
-              title="Joystick"
-              description="Drag to move the tip freely in real time."
-              defaultOpen={false}
-              isActive={activeSource === 'joystick'}
-              actionTrigger={lastEntry?.timestamp}
-            >
-              <JoystickControl />
-            </CollapsibleFeatureCard>
-
-            {/* 3. Keyboard */}
+            {/* 2. Keyboard */}
             <CollapsibleFeatureCard
               id="keyboard"
               icon={<KeyboardIcon />}
@@ -199,7 +201,7 @@ export default function Home() {
               <KeyboardControl />
             </CollapsibleFeatureCard>
 
-            {/* 4. PIN Sequence */}
+            {/* 3. PIN Sequence */}
             <CollapsibleFeatureCard
               id="pin-sequence"
               icon={<PinIcon />}
@@ -212,7 +214,7 @@ export default function Home() {
               <PinEntryControl />
             </CollapsibleFeatureCard>
 
-            {/* 5. Voice Control */}
+            {/* 4. Voice Control */}
             <CollapsibleFeatureCard
               id="voice-control"
               icon={<MicIcon />}
@@ -225,7 +227,7 @@ export default function Home() {
               <VoiceControl />
             </CollapsibleFeatureCard>
 
-            {/* 6. Agentic AI */}
+            {/* 5. Agentic AI */}
             <CollapsibleFeatureCard
               id="agentic-ai"
               icon={<SparksIcon />}
@@ -238,7 +240,7 @@ export default function Home() {
               <AgenticControl />
             </CollapsibleFeatureCard>
 
-            {/* 7. Joint & Position Details */}
+            {/* 6. Joint & Position Details */}
             <CollapsibleFeatureCard
               id="telemetry-details"
               icon={<TelemetryIcon />}
@@ -249,7 +251,7 @@ export default function Home() {
               <TelemetryPanel />
             </CollapsibleFeatureCard>
 
-            {/* 8. Activity Log */}
+            {/* 7. Activity Log */}
             <CollapsibleFeatureCard
               id="activity-log"
               icon={<LogIcon />}
