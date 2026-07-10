@@ -12,6 +12,11 @@ const TelemetryPanel = dynamic(
   { ssr: false }
 );
 
+const JoystickControl = dynamic(
+  () => import('@/components/controls/JoystickControl'),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
@@ -22,7 +27,17 @@ export default function Home() {
         <div className="flex-1">
           <RobotViewer />
         </div>
-        <TelemetryPanel />
+        <aside className="flex w-72 flex-shrink-0 flex-col border-l border-gray-700 bg-gray-800">
+          <div className="flex-1 overflow-y-auto">
+            <TelemetryPanel />
+          </div>
+          <div className="border-t border-gray-700 p-4">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
+              Joystick
+            </h2>
+            <JoystickControl />
+          </div>
+        </aside>
       </div>
     </main>
   );
