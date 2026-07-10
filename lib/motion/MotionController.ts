@@ -25,7 +25,11 @@ export class MotionController {
     store.addLogEntry(logEntry);
 
     if (result.accepted && result.newAngles) {
-      this.animateTo(result.newAngles);
+      let duration = 200;
+      if (command.type === 'moveTo' || command.type === 'pressKey') {
+        duration = 500;
+      }
+      this.animateTo(result.newAngles, duration);
     }
 
     return result;
@@ -49,7 +53,7 @@ export class MotionController {
     return this.anim.isRunning();
   }
 
-  private animateTo(targetAngles: number[]) {
+  private animateTo(targetAngles: number[], duration = 200) {
     const current = useJointStore.getState().jointAngles;
     this.anim.start(
       current,
@@ -63,7 +67,7 @@ export class MotionController {
         this._resolveIdle?.();
         this._resolveIdle = null;
       },
-      200,
+      duration,
     );
   }
 

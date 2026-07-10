@@ -4,7 +4,14 @@ import { computeTipPosition } from './forwardKinematics';
 const EPS = 1e-6;
 const DEFAULT_LAMBDA = 0.1;
 const DEFAULT_TOLERANCE = 0.002;
-const DEFAULT_MAX_ITER = 100;
+const DEFAULT_MAX_ITER = 200;
+
+/**
+ * Maximum joint-angle step per iteration (radians).
+ * Prevents wild overshooting when the target is far away and the
+ * Jacobian suggests huge delta-q values.
+ */
+const MAX_STEP_RAD = 0.15;
 
 export interface IKSolution {
   angles: number[];
@@ -100,8 +107,15 @@ export function solveIK(
     const delta = mat3x3MultiplyVec(jjtInv, error);
     const dq = multiply7x3Vec(jt, delta);
 
+    // Adaptive step-size: clamp each joint delta to MAX_STEP_RAD
+    // This prevents overshooting when the target is far from the
+    // current configuration, improving convergence for large moves.
     for (let i = 0; i < nJoints; i++) {
-      angles[i] += dq[i];
+      let step = dq[i];
+      if (step > MAX_STEP_RAD) step = MAX_STEP_RAD;
+      if (step < -MAX_STEP_RAD) step = -MAX_STEP_RAD;
+
+      angles[i] += step;
       angles[i] = Math.max(
         chain.limits[i].lower,
         Math.min(chain.limits[i].upper, angles[i]),
