@@ -28,6 +28,11 @@ const PinEntryControl = dynamic(
   { ssr: false }
 );
 
+const VoiceControl = dynamic(
+  () => import('@/components/controls/VoiceControl'),
+  { ssr: false }
+);
+
 function CollapseBtn({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
   return (
     <button
@@ -80,10 +85,10 @@ export default function Home() {
           {controlsOpen && (
             <div className="flex flex-col gap-0">
               <div className="border-b border-gray-700 p-4">
-                <JoystickControl />
+                <PinEntryControl />
               </div>
               <div className="border-b border-gray-700 p-4">
-                <PinEntryControl />
+                <VoiceControl />
               </div>
               <div className="p-4">
                 <KeyboardControl />
@@ -109,8 +114,13 @@ export default function Home() {
             <CollapseBtn collapsed={!telemetryOpen} onClick={() => setTelemetryOpen(!telemetryOpen)} />
           </div>
           {telemetryOpen && (
-            <div className="p-4">
-              <TelemetryPanel />
+            <div className="flex flex-col gap-0">
+              <div className="p-4">
+                <TelemetryPanel />
+              </div>
+              <div className="border-t border-gray-700 p-4">
+                <JoystickControl />
+              </div>
             </div>
           )}
         </aside>
