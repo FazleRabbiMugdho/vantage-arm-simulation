@@ -12,7 +12,7 @@ const JOINT_NAMES = [
   'joint_5', 'joint_6', 'stylus_pitch',
 ];
 
-const JOG_STEP = 0.05;
+const JOG_STEP = 0.1;
 
 const DIRECTION_MAP: Record<string, [number, number, number]> = {
   up:      [0, 0, JOG_STEP],

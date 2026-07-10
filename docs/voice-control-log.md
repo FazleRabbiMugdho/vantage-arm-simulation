@@ -107,14 +107,14 @@ interface ParsedCommand {
 - Six directions, each mapped to an XYZ delta:
   | Direction | Delta (default) |
   |-----------|----------------|
-  | up | `(0, 0, +0.05)` |
-  | down | `(0, 0, -0.05)` |
-  | left | `(0, -0.05, 0)` |
-  | right | `(0, +0.05, 0)` |
-  | forward | `(+0.05, 0, 0)` |
-  | back | `(-0.05, 0, 0)` |
+  | up | `(0, 0, +0.1)` |
+  | down | `(0, 0, -0.1)` |
+  | left | `(0, -0.1, 0)` |
+  | right | `(0, +0.1, 0)` |
+  | forward | `(+0.1, 0, 0)` |
+  | back | `(-0.1, 0, 0)` |
 - Optional distance suffix: `10 cm`, `50 mm`, `0.1 meters`
-- Default step: **5 cm** (`0.05 m`)
+- Default step: **10 cm** (`0.1 m`) — double the joystick default for clearly visible movement per command
 - Maps to `{ type: 'jog', deltaX, deltaY, deltaZ }`
 
 ### Command type 3: Rotate Joint
