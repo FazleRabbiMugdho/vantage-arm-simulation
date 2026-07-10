@@ -86,7 +86,7 @@ export default function TelemetryPanel() {
 
       {/* Joint angles */}
       <section className="mb-4">
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <h3 className="panel-heading mb-2">
           Joint Angles
         </h3>
         <div className="space-y-1.5">
@@ -107,15 +107,15 @@ export default function TelemetryPanel() {
                   <HoldButton
                     onStep={() => adjustJoint(i, -STEP_RAD)}
                     label="−"
-                    className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-xs text-gray-300 hover:bg-gray-600"
+                    className="ctrl-btn h-5 w-5 text-xs"
                   />
-                  <span className="font-mono tabular-nums text-gray-100">
+                  <span className="font-mono tabular-nums text-gray-100 w-14 text-right text-sm">
                     {angleDeg.toFixed(1)}°
                   </span>
                   <HoldButton
                     onStep={() => adjustJoint(i, STEP_RAD)}
                     label="+"
-                    className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-xs text-gray-300 hover:bg-gray-600"
+                    className="ctrl-btn h-5 w-5 text-xs"
                   />
                   <span className="text-[10px] text-gray-500">
                     [{limit.lowerDeg}..{limit.upperDeg}]
@@ -129,7 +129,7 @@ export default function TelemetryPanel() {
 
       {/* End-effector position */}
       <section>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+        <h3 className="panel-heading mb-2">
           End-Effector Position
         </h3>
         <div className="space-y-1">

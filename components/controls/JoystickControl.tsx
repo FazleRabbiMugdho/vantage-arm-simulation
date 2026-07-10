@@ -67,8 +67,8 @@ export default function JoystickControl() {
           onPointerCancel={handlePointerUp}
           className={`relative cursor-crosshair select-none rounded-lg border-2 transition-colors ${
             active
-              ? 'border-sky-400 bg-sky-900/30'
-              : 'border-gray-600 bg-gray-800'
+              ? 'border-amber-500 bg-amber-900/10'
+              : 'border-gray-700/50 bg-graphite-700'
           }`}
           style={{ width: PAD_SIZE, height: PAD_SIZE, touchAction: 'none' }}
         >
@@ -80,7 +80,7 @@ export default function JoystickControl() {
           {/* Knob */}
           {knobPos && (
             <div
-              className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-400 bg-sky-500/40"
+              className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-amber-400 bg-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.3)]"
               style={{ left: CENTER + knobPos.x, top: CENTER + knobPos.y }}
             />
           )}
@@ -106,14 +106,14 @@ export default function JoystickControl() {
             <span className="text-[10px] font-semibold text-gray-400">X</span>
             <button
               onPointerDown={() => emitJog(stepSize, 0, 0)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move X+"
             >
               +
             </button>
             <button
               onPointerDown={() => emitJog(-stepSize, 0, 0)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move X-"
             >
               −
@@ -125,14 +125,14 @@ export default function JoystickControl() {
             <span className="text-[10px] font-semibold text-gray-400">Y</span>
             <button
               onPointerDown={() => emitJog(0, stepSize, 0)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move Y+"
             >
               +
             </button>
             <button
               onPointerDown={() => emitJog(0, -stepSize, 0)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move Y-"
             >
               −
@@ -144,14 +144,14 @@ export default function JoystickControl() {
             <span className="text-[10px] font-semibold text-gray-400">Z</span>
             <button
               onPointerDown={() => emitJog(0, 0, stepSize)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move Z+"
             >
               +
             </button>
             <button
               onPointerDown={() => emitJog(0, 0, -stepSize)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-gray-600 bg-gray-700 text-sm font-bold text-gray-200 hover:bg-gray-600 active:bg-gray-500"
+              className="ctrl-btn h-8 w-8 text-sm font-bold"
               title="Move Z-"
             >
               −
@@ -162,7 +162,7 @@ export default function JoystickControl() {
 
       {/* Step size selector */}
       <div className="flex flex-col gap-1.5 border-t border-gray-700/50 pt-3">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+        <span className="panel-heading">
           Jog Step Size
         </span>
         <div className="flex rounded bg-gray-900/50 p-0.5">
@@ -172,8 +172,8 @@ export default function JoystickControl() {
               onClick={() => setStepSize(val)}
               className={`flex-1 rounded px-2 py-1 text-center font-mono text-[10px] font-medium transition-colors ${
                 stepSize === val
-                  ? 'bg-sky-500 text-white font-bold'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                  ? 'bg-amber-500 text-graphite-950 font-bold'
+                  : 'text-gray-500 hover:bg-graphite-600 hover:text-gray-300'
               }`}
             >
               {val * 1000}mm
