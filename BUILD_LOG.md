@@ -19,6 +19,14 @@ you hit an unexpected bug. The goal is to never fix the same thing twice.
 
 ## Entries
 
+## 2026-07-10 — urdf-loader missing TypeScript types
+
+**Prompt:** 3 (URDF Viewer)
+**Symptoms:** Build failed — `Property 'setJointValues' does not exist on type 'Object3D'` and `Property 'joints' does not exist`.
+**Root cause:** `urdf-loader` is a JS-only library with no bundled type declarations. `URDFRobot` gets typed as vanilla `THREE.Object3D`.
+**Solution:** Used `any` type for the robot ref and callback parameter. Created `lib/types/urdf-loader.d.ts` for ambient declarations but the simpler fix was direct `any` casts where needed.
+**Prevention:** Check library has types before use. For JS-only Three.js loaders, default to `any` refs immediately rather than fighting the type system.
+
 ## 2026-07-10 — urdf-loader peer dependency conflict with three.js
 
 **Prompt:** 2 (Scaffold)
